@@ -92,7 +92,7 @@ export function HomeworkToday() {
                 return (
                   <button key={c.student_id}
                     onClick={() => setChecks.mutate({ assignmentId: a.id, studentIds: [c.student_id], status: isDone ? "missing" : "done" })}
-                    className={`flex min-h-14 items-center justify-center gap-2 rounded-xl border px-2 py-2 text-base font-black ${isDone ? "border-sage-soft bg-sage-soft text-sage" : "border-rose bg-rose text-rose-ink"}`}>
+                    className={`flex min-h-14 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border px-2 py-2 text-base font-black lg:text-sm ${isDone ? "border-sage-soft bg-sage-soft text-sage" : "border-rose bg-rose text-rose-ink"}`}>
                     <span className="text-sm opacity-75">{s?.student_no}</span>
                     <span>{s?.name_zh ?? "（已移除）"}</span>
                     {isDone && <span>✓</span>}

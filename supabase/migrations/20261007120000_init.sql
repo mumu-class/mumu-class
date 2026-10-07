@@ -292,6 +292,17 @@ create policy owner_all on public.homework_checks for all to authenticated
 create policy read_all on public.holidays for select to authenticated using (true);
 create policy owner_read on public.audit_log for select to authenticated using (owner_id = auth.uid());
 
+-- ───────────────────────── 資料表權限（Data API）─────────────────────────
+-- 新版 Supabase 不再自動授權 public schema 的新資料表，這裡明確授權給登入者；
+-- 實際能讀寫哪些列仍由上面的 RLS 決定。anon（未登入）一律沒有權限。
+revoke all on all tables in schema public from anon;
+grant select, insert, update, delete on
+  public.classes, public.students, public.homework_items, public.seating_layouts, public.seat_assignments,
+  public.coin_transactions, public.semesters, public.semester_off_days, public.planner_columns,
+  public.planner_entries, public.homework_assignments, public.homework_checks
+  to authenticated;
+grant select on public.holidays, public.audit_log, public.student_balances to authenticated;
+
 -- ───────────────────────── RPC ─────────────────────────
 -- 建立作業：同一個 transaction 內為所有在籍學生建立「未交」紀錄，名單在此刻固定
 create or replace function public.create_assignment(p_class_id uuid, p_item_id uuid, p_note text, p_date date)
@@ -331,6 +342,11 @@ begin
           format('依帳戶餘額 %s 幣計算 %s%%', v_balance, round(p_rate * 100, 2)));
   return v_interest;
 end $$;
+
+revoke execute on function public.create_assignment(uuid, uuid, text, date) from public, anon;
+revoke execute on function public.apply_interest(uuid, numeric) from public, anon;
+grant execute on function public.create_assignment(uuid, uuid, text, date) to authenticated;
+grant execute on function public.apply_interest(uuid, numeric) to authenticated;
 
 -- ───────────────────────── 國定假日（115 學年上學期）─────────────────────────
 insert into public.holidays (date, name) values

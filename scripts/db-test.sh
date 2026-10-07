@@ -11,6 +11,7 @@ pg_ctl -D "$DATA" -o "-p $PORT -k $SOCK -c listen_addresses=''" -l "$DATA/log" -
 PSQL=(psql -h "$SOCK" -p "$PORT" -U postgres -q -v ON_ERROR_STOP=1)
 "${PSQL[@]}" <<'SQL'
 create role authenticated;
+create role anon;
 create schema auth;
 create table auth.users (id uuid primary key);
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
