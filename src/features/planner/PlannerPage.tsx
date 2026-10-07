@@ -74,7 +74,7 @@ function PlannerTable() {
 
   const offSet = useMemo(() => new Set(offDays.map((o) => o.date)), [offDays]);
   const rows = useMemo(() => buildRows(sem.start_date, sem.end_date, holidays, offSet), [sem.start_date, sem.end_date, holidays, offSet]);
-  const nextKey = useMemo(() => new Map(rows.map((r) => [r.key, nextSchoolDay(rows, r.key)?.key ?? null])), [rows]);
+  const nextOf = useMemo(() => new Map(rows.map((r) => [r.key, nextSchoolDay(rows, r.key)])), [rows]);
   const months = [...new Set(rows.map((r) => r.month))];
   const weeks = [...new Set(rows.map((r) => r.week))];
   const groups = hwCols.reduce<{ name: string; span: number }[]>((acc, c) => {
@@ -95,10 +95,10 @@ function PlannerTable() {
     const header = ["週次", "日期", "星期", "是否上課", "國定假日／補假", "重要行事曆", "當日作業總覽", "堂", "國語課程進度", "社會課程進度", ...hwCols.map((c) => c.key)];
     const body = rows.map((r) => {
       const v = values[r.key] ?? {};
-      const nk = nextKey.get(r.key);
+      const nr = nextOf.get(r.key);
       const merge = (manual: string | undefined, auto: string[]) => [manual?.trim(), ...auto].filter(Boolean).join("\n");
       return [r.week, r.key, `週${WEEKDAYS[r.dow]}`, r.isSchoolDay ? "上課" : "不上課", r.holiday || (r.isManualOff ? "自訂不上課日" : ""),
-        v["重要行事曆"] ?? "", summaryText(summaryItems(v, nk ? values[nk] ?? {} : null)), v["堂"] ?? "",
+        v["重要行事曆"] ?? "", summaryText(summaryItems(v, nr ? { vals: values[nr.key] ?? {}, dow: nr.dow } : null)), v["堂"] ?? "",
         merge(v["國語課程進度"], autoCourseZh(v)), merge(v["社會課程進度"], autoCourseSocial(v)),
         ...hwCols.map((c) => v[c.key] ?? "")];
     });
@@ -164,9 +164,9 @@ function PlannerTable() {
           </thead>
           <tbody>
             {rows.map((r) => {
-              const nk = nextKey.get(r.key);
+              const nr = nextOf.get(r.key);
               return (
-                <PlannerRow key={r.key} row={r} vals={values[r.key] ?? EMPTY} nextVals={nk ? values[nk] ?? EMPTY : null}
+                <PlannerRow key={r.key} row={r} vals={values[r.key] ?? EMPTY} nextVals={nr ? values[nr.key] ?? EMPTY : null} nextDow={nr?.dow ?? 0}
                   hwCols={hwCols} fixed={fixed} onChange={onChange} failed={failed.has(r.key)} />
               );
             })}

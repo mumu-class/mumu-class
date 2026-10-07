@@ -29,7 +29,12 @@ export function Setup() {
       }
       const cols = await must(supabase.from("planner_columns").select("id").limit(1));
       if (!cols.length) {
-        await must(supabase.from("planner_columns").insert(DEFAULT_PLANNER_COLUMNS.map((c, i) => ({ ...c, sort_order: i }))));
+        // 欄位名稱和作業項目同名時記下 item_id，日後「規劃表 → 作業小管家」串接會用到
+        const all = await must(supabase.from("homework_items").select("id,name").returns<{ id: string; name: string }[]>());
+        const idByName = new Map(all.map((i) => [i.name, i.id]));
+        await must(supabase.from("planner_columns").insert(
+          DEFAULT_PLANNER_COLUMNS.map((c, i) => ({ ...c, sort_order: i, item_id: idByName.get(c.key) ?? null })),
+        ));
       }
       await must(supabase.from("semesters").insert({ ...DEFAULT_SEMESTER, class_id: cls.id }));
       await must(supabase.from("seating_layouts").insert({ class_id: cls.id, name: "目前座位", rows: 5, cols: 6, is_current: true }));
@@ -44,6 +49,7 @@ export function Setup() {
     <div className="mx-auto max-w-2xl space-y-4 p-4">
       <h1 className="text-2xl font-black">歡迎使用 MuMu 班級工作台</h1>
       <p className="text-muted">先建立班級並貼上學生名單。名單之後可以在「設定」中修改。</p>
+      <p className="text-sm text-muted">如果不想存完整姓名，可以只填遮蔽後的名字（例如「1 陳O聖」），英文名也可以不填。</p>
       <div className="card space-y-4 p-5">
         <div className="grid grid-cols-2 gap-3">
           <div><label className="label" htmlFor="cls-name">班級</label><input id="cls-name" className="input" value={name} onChange={(e) => setName(e.target.value)} /></div>

@@ -7,6 +7,7 @@ type Props = {
   row: DayRow;
   vals: DayValues;
   nextVals: DayValues | null;
+  nextDow: number;
   hwCols: PlannerColumn[];
   fixed: Record<string, PlannerColumn | undefined>;
   onChange: (date: string, col: PlannerColumn, value: string) => void;
@@ -43,13 +44,13 @@ function moveDown(e: KeyboardEvent<HTMLInputElement>) {
   }
 }
 
-export const PlannerRow = memo(function PlannerRow({ row, vals, nextVals, hwCols, fixed, onChange, failed }: Props) {
+export const PlannerRow = memo(function PlannerRow({ row, vals, nextVals, nextDow, hwCols, fixed, onChange, failed }: Props) {
   const off = !row.isSchoolDay;
   const d = row.date;
   const bg = row.holiday ? "bg-rose/40" : row.isManualOff ? "bg-line/40" : "bg-sheet";
   const cell = `border-b border-r border-line align-top ${bg}`;
   const sticky = `sticky z-10 ${cell}`;
-  const items = summaryItems(vals, nextVals);
+  const items = summaryItems(vals, nextVals ? { vals: nextVals, dow: nextDow } : null);
   const zhAuto = autoCourseZh(vals);
   const soAuto = autoCourseSocial(vals);
   const set = (key: string) => (v: string) => { const c = fixed[key]; if (c) onChange(row.key, c, v); };

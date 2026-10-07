@@ -7,6 +7,8 @@ export type SummaryItem = { label: string; text: string; plain: boolean };
 
 const NUM = /[0-9０-９一二三四五六七八九十百零]/;
 const SIGN = /訂簽/;
+const CHAPTER_ONLY = /^[0-9０-９一二三四五六七八九十百零\-－–—~～.．、,，\s]+$/;
+const WEEKDAY = ["日", "一", "二", "三", "四", "五", "六"];
 
 export function splitEntries(value: string | undefined): string[] {
   return String(value ?? "").split(/\r?\n|[；;]/).map((x) => x.trim()).filter(Boolean);
@@ -17,9 +19,19 @@ export function goesToCourse(raw: string): boolean {
   return !SIGN.test(raw) && NUM.test(raw);
 }
 
-/** 舊版作業欄的順序（「備註」不列入作業總覽） */
+/**
+ * 詩選分流（老師回條 2026-10-07）：
+ * 「背」＋數字（例：背12）→ 作業；只有數字（例：12、12-13）→ 課堂進度；其他文字 → 兩邊都列。
+ */
+export function poemRoute(raw: string): "course" | "homework" | "both" {
+  if (/背/.test(raw) && NUM.test(raw)) return "homework";
+  if (NUM.test(raw) && CHAPTER_ONLY.test(raw)) return "course";
+  return "both";
+}
+
+/** 作業欄的順序（「備註」不列入作業總覽） */
 export const HOMEWORK_KEYS = [
-  "國預習單", "生字本", "國習", "國簿", "國白卷", "字詞本", "字詞考", "國課練", "國單元考",
+  "國預習單", "甲本", "乙本", "國習", "國簿", "國白卷", "字詞本", "字詞考", "國課練", "國單元考",
   "寫作", "閱達", "成易", "詩選", "國複卷",
   "社習", "社重", "社簿", "社白卷", "社複卷", "社單元考",
   "其他", "備註",
@@ -35,8 +47,7 @@ export function autoCourseZh(day: DayValues): string[] {
     const v = String(day[k] ?? "").trim();
     if (v && goesToCourse(v)) lines.push(`${k}：${v}`);
   }
-  const poem = String(day["詩選"] ?? "").trim();
-  if (poem) lines.push(`詩選：${poem}`);
+  splitEntries(day["詩選"]).filter((x) => poemRoute(x) !== "homework").forEach((x) => lines.push(`詩選：${x}`));
   splitEntries(day["字詞考"]).filter(goesToCourse).forEach((x) => lines.push(`字詞考：${x}`));
   splitEntries(day["國單元考"]).filter(goesToCourse).forEach((x) => lines.push(`考${x}`));
   return lines;
@@ -47,8 +58,10 @@ export function autoCourseSocial(day: DayValues): string[] {
   return splitEntries(day["社單元考"]).filter(goesToCourse).map((x) => `考${x}`);
 }
 
-/** 當日作業總覽：當天的作業項目，加上下一個上學日的考試提醒 */
-export function summaryItems(day: DayValues, nextDay: DayValues | null): SummaryItem[] {
+export type NextDay = { vals: DayValues; dow: number };
+
+/** 當日作業總覽：當天的作業項目，加上下一個上學日的考試提醒（寫出星期，例：週一考國L3字詞考） */
+export function summaryItems(day: DayValues, next: NextDay | null): SummaryItem[] {
   const items: SummaryItem[] = [];
   for (const k of SUMMARY_KEYS) {
     const v = String(day[k] ?? "").trim();
@@ -58,12 +71,17 @@ export function summaryItems(day: DayValues, nextDay: DayValues | null): Summary
       continue;
     }
     if (SINGLE_STUDY.has(k) && goesToCourse(v)) continue;
+    if (k === "詩選") {
+      splitEntries(v).filter((x) => poemRoute(x) !== "course").forEach((x) => items.push({ label: k, text: x, plain: false }));
+      continue;
+    }
     items.push({ label: k, text: v, plain: false });
   }
-  if (nextDay) {
-    splitEntries(nextDay["字詞考"]).filter(goesToCourse).forEach((x) => items.push({ label: "", text: `明天考國${x}字詞考`, plain: true }));
-    splitEntries(nextDay["國單元考"]).filter(goesToCourse).forEach((x) => items.push({ label: "", text: `明天考國${x}單元考`, plain: true }));
-    splitEntries(nextDay["社單元考"]).filter(goesToCourse).forEach((x) => items.push({ label: "", text: `明天考社${x}單元考`, plain: true }));
+  if (next) {
+    const when = `週${WEEKDAY[next.dow]}考`;
+    splitEntries(next.vals["字詞考"]).filter(goesToCourse).forEach((x) => items.push({ label: "", text: `${when}國${x}字詞考`, plain: true }));
+    splitEntries(next.vals["國單元考"]).filter(goesToCourse).forEach((x) => items.push({ label: "", text: `${when}國${x}單元考`, plain: true }));
+    splitEntries(next.vals["社單元考"]).filter(goesToCourse).forEach((x) => items.push({ label: "", text: `${when}社${x}單元考`, plain: true }));
   }
   return items;
 }
