@@ -1,0 +1,21 @@
+# 舊版單檔 HTML 工具：內含真實學生名單，不進 repo（見設計文件 D9）
+legacy/
+
+# 環境變數與密鑰
+.env
+.env.local
+.env.*.local
+
+# 相依套件與建置輸出
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+
+# Supabase 本機暫存
+supabase/.temp/
+supabase/.branches/
+
+# 系統檔
+.DS_Store
