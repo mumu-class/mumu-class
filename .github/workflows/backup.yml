@@ -8,8 +8,8 @@ jobs:
   backup:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with: { node-version: 22, cache: npm }
       - run: npm ci
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq age
@@ -25,7 +25,7 @@ jobs:
           test -n "$AGE_RECIPIENT" || { echo "缺少 BACKUP_AGE_RECIPIENT"; exit 1; }
           age -r "$AGE_RECIPIENT" -o "backup-$(date -u +%F).json.age" backup.json
           rm backup.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: mumu-backup-${{ github.run_id }}
           path: backup-*.json.age
