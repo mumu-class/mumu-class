@@ -2,7 +2,7 @@
 # 在暫時的本機 Postgres 上套用 migration 並執行 supabase/tests/*.sql。
 # 需要 Homebrew 的 postgresql（initdb、pg_ctl、psql）。不需要 Docker。
 set -euo pipefail
-export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+export LC_ALL="${PG_LOCALE:-en_US.UTF-8}" LANG="${PG_LOCALE:-en_US.UTF-8}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DATA="$(mktemp -d)"; SOCK="$(mktemp -d /tmp/pgsock.XXXX)"; PORT=54329
 trap 'pg_ctl -D "$DATA" stop -m fast >/dev/null 2>&1 || true; rm -rf "$DATA" "$SOCK"' EXIT
