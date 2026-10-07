@@ -17,7 +17,10 @@ export function Login() {
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setBusy(false);
     if (error) {
-      setError(error.message.includes("Invalid") ? "Email 或密碼不正確，請再試一次。" : `登入失敗：${error.message}`);
+      const code = (error as { code?: string }).code;
+      if (code === "invalid_credentials") setError("Email 或密碼不正確，請再試一次。");
+      else if (code === "email_not_confirmed") setError("這個帳號的 Email 尚未確認，請在 Supabase 的 Users 中確認，或重建帳號並勾選 Auto Confirm User。");
+      else setError(`登入失敗（${code ?? error.status ?? "未知錯誤"}）：${error.message}。請截圖給協助者。`);
       return;
     }
     navigate(params.get("next") || "/homework", { replace: true });
