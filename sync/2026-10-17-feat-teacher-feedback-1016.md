@@ -9,7 +9,7 @@
 - `1e441ec` `rules.ts`：作業總覽回傳 `{ homework, sign }`、所有欄位逐項判斷、R8 其他考試在前一個上學日預告。
 - `71a2f37`／`52c378a` 規劃表：電腦固定週次＋日期＋作業總覽、手機只固定「第N週＋日期」；作業格改自動長高文字框（Enter 跳下一上學日、Alt/Shift+Enter 換行、忽略輸入法選字）；隱藏欄不顯示；CSV 拆作業總覽／訂簽總覽、移除堂。
 - `a166557`／`e085630`／`638e009` 小管家：`logic/order.ts`（`sortOpen`／`moveItem`／`missingByStudent`）、今日作業 ◀ ▶ 排序（寫 sort_order 1..n）、缺交總覽「依作業／依學生」。
-- `src/app/Layout.tsx`：電腦版左側選單可收合成圖示窄欄（«／»，存在 localStorage `mumu.sidebar`）；課程規劃頁移除 `max-w-6xl` 限制。1440px 寬實測：展開時規劃表可視寬 1168px、收合時 1312px（原本上限約 1100px）；其他頁仍為 1152px。
+- `src/app/Layout.tsx`：電腦版左側選單可收合成圖示窄欄（選單底部「« 收合選單」／»，存在 localStorage `mumu.sidebar`）；課程規劃頁移除 `max-w-6xl` 限制。1440px 寬實測：展開時規劃表可視寬 1168px、收合時 1312px（原本上限約 1100px）；其他頁仍為 1152px。
 - 驗證：`npm run typecheck`、`npm test`（57 passed）、`npm run build`、`./scripts/db-test.sh`（兩組 PASSED）全過。本機 Supabase 已套用新 migration，內建瀏覽器實測電腦與手機寬度的規劃表、◀ ▶ 重新整理後保存、依學生缺交皆正確。
 
 ## Blocker / WIP
