@@ -10,7 +10,7 @@ export function useAssignments(classId: string) {
     queryFn: () =>
       must(
         supabase.from("homework_assignments")
-          .select("id,class_id,item_id,note,assigned_date,status,archived_at,created_at,homework_checks(student_id,status)")
+          .select("id,class_id,item_id,note,assigned_date,sort_order,status,archived_at,created_at,homework_checks(student_id,status)")
           .eq("class_id", classId).is("deleted_at", null)
           .order("assigned_date", { ascending: false }).order("created_at", { ascending: false })
           .returns<Assignment[]>(),
@@ -55,5 +55,24 @@ export function useUpdateAssignment(classId: string) {
     mutationFn: (v: { id: string; patch: Record<string, unknown> }) =>
       must(supabase.from("homework_assignments").update(v.patch).eq("id", v.id)),
     onSuccess: () => qc.invalidateQueries({ queryKey: key(classId) }),
+  });
+}
+
+/** 調整進行中作業的順序：依傳入的 id 順序寫入 sort_order = 1、2、3…；樂觀更新，失敗時還原 */
+export function useReorderAssignments(classId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      await Promise.all(ids.map((id, i) => must(supabase.from("homework_assignments").update({ sort_order: i + 1 }).eq("id", id))));
+    },
+    onMutate: async (ids) => {
+      await qc.cancelQueries({ queryKey: key(classId) });
+      const prev = qc.getQueryData<Assignment[]>(key(classId));
+      const pos = new Map(ids.map((id, i) => [id, i + 1]));
+      qc.setQueryData<Assignment[]>(key(classId), (list) => list?.map((a) => (pos.has(a.id) ? { ...a, sort_order: pos.get(a.id)! } : a)));
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => { if (ctx?.prev) qc.setQueryData(key(classId), ctx.prev); },
+    onSettled: () => qc.invalidateQueries({ queryKey: key(classId) }),
   });
 }

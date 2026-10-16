@@ -17,19 +17,18 @@ const hw = (group_name: string, keys: string[], multi: string[] = []): Col[] =>
     label: key === "國單元考" || key === "社單元考" ? "單元考" : key,
     group_name,
     kind: multi.includes(key) ? "multiline" : "text",
-    in_summary: key !== "備註",
+    in_summary: true,
   }));
 
-/** 課程規劃表的欄位（沿用 v22 的順序與分組；生字本依回條拆成甲本、乙本） */
+/** 課程規劃表的欄位（沿用 v22 的順序與分組；生字本依回條拆成甲本、乙本；2026-10-16 回饋：拿掉堂、備註，其他分組拆欄） */
 export const DEFAULT_PLANNER_COLUMNS: Col[] = [
   { key: "重要行事曆", label: "重要行事曆", group_name: "固定", kind: "calendar", in_summary: false },
-  { key: "堂", label: "堂", group_name: "固定", kind: "period", in_summary: false },
   { key: "國語課程進度", label: "國語", group_name: "固定", kind: "course_zh", in_summary: false },
   { key: "社會課程進度", label: "社會", group_name: "固定", kind: "course_social", in_summary: false },
   ...hw("國語｜核心", ["國預習單", "甲本", "乙本", "國習", "國簿", "國白卷", "字詞本", "字詞考", "國課練", "國單元考"], ["字詞考", "國單元考"]),
   ...hw("國語｜補充與複習", ["寫作", "閱達", "成易", "詩選", "國複卷"]),
   ...hw("社會", ["社習", "社重", "社簿", "社白卷", "社複卷", "社單元考"], ["社單元考"]),
-  ...hw("其他", ["其他", "備註"]),
+  ...hw("其他", ["數學", "自然", "其他", "其他考試"], ["其他考試"]),
 ];
 
 export const DEFAULT_SEMESTER = { name: "115 上", start_date: "2026-08-31", end_date: "2027-01-20" };

@@ -38,7 +38,7 @@ function PlannerTable() {
 
   const colById = useMemo(() => new Map(columns.map((c) => [c.id, c])), [columns]);
   const fixed = useMemo(() => Object.fromEntries(columns.map((c) => [c.key, c])) as Record<string, PlannerColumn | undefined>, [columns]);
-  const hwCols = useMemo(() => columns.filter((c) => c.kind === "text" || c.kind === "multiline"), [columns]);
+  const hwCols = useMemo(() => columns.filter((c) => !c.hidden && (c.kind === "text" || c.kind === "multiline")), [columns]);
 
   // 畫面上的格子內容：日期 → 欄位 key → 值。只在載入時從資料庫初始化一次，之後以畫面為準、逐格寫回。
   const [values, setValues] = useState<Record<string, DayValues>>(() => {
@@ -92,13 +92,14 @@ function PlannerTable() {
   }
 
   function exportCsv() {
-    const header = ["週次", "日期", "星期", "是否上課", "國定假日／補假", "重要行事曆", "當日作業總覽", "堂", "國語課程進度", "社會課程進度", ...hwCols.map((c) => c.key)];
+    const header = ["週次", "日期", "星期", "是否上課", "國定假日／補假", "重要行事曆", "作業總覽", "訂簽總覽", "國語課程進度", "社會課程進度", ...hwCols.map((c) => c.key)];
     const body = rows.map((r) => {
       const v = values[r.key] ?? {};
       const nr = nextOf.get(r.key);
+      const sum = summaryItems(v, nr ? { vals: values[nr.key] ?? {}, dow: nr.dow } : null);
       const merge = (manual: string | undefined, auto: string[]) => [manual?.trim(), ...auto].filter(Boolean).join("\n");
       return [r.week, r.key, `週${WEEKDAYS[r.dow]}`, r.isSchoolDay ? "上課" : "不上課", r.holiday || (r.isManualOff ? "自訂不上課日" : ""),
-        v["重要行事曆"] ?? "", summaryText(summaryItems(v, nr ? { vals: values[nr.key] ?? {}, dow: nr.dow } : null)), v["堂"] ?? "",
+        v["重要行事曆"] ?? "", summaryText(sum.homework), summaryText(sum.sign),
         merge(v["國語課程進度"], autoCourseZh(v)), merge(v["社會課程進度"], autoCourseSocial(v)),
         ...hwCols.map((c) => v[c.key] ?? "")];
     });
@@ -106,7 +107,6 @@ function PlannerTable() {
   }
 
   const th = "border-b border-r border-line px-1 py-2 text-center font-black text-sm";
-  const stickyTh = `${th} sticky z-30 bg-[#f6f2ff]`;
 
   return (
     <div className="planner">
@@ -150,12 +150,11 @@ function PlannerTable() {
         <table className="w-max border-separate border-spacing-0 text-[15px]">
           <thead className="sticky top-0 z-20">
             <tr>
-              <th rowSpan={2} className={`${stickyTh} left-0 w-12 bg-sheet`}>週次</th>
-              <th rowSpan={2} className={`${stickyTh} left-12 w-[70px] bg-sheet`}>日期</th>
-              <th rowSpan={2} className={`${stickyTh} left-[118px] w-[170px] bg-[#fff8e8]`}>重要行事曆</th>
-              <th rowSpan={2} className={`${stickyTh} left-[288px] w-[240px] bg-[#eef7ff]`}>當日作業總覽</th>
-              <th rowSpan={2} className={`${stickyTh} left-[528px] w-11`}>堂</th>
-              <th rowSpan={2} className={`${stickyTh} left-[572px] w-[220px]`}>課堂進度</th>
+              <th rowSpan={2} className={`${th} hidden w-10 bg-sheet md:sticky md:left-0 md:z-30 md:table-cell`}>週次</th>
+              <th rowSpan={2} className={`${th} sticky left-0 z-30 w-14 bg-sheet md:left-10`}>日期</th>
+              <th rowSpan={2} className={`${th} w-[220px] bg-[#eef7ff] md:sticky md:left-24 md:z-30`}>當日作業總覽</th>
+              <th rowSpan={2} className={`${th} w-[140px] bg-[#fff8e8]`}>重要行事曆</th>
+              <th rowSpan={2} className={`${th} w-[180px] bg-[#f6f2ff]`}>課堂進度</th>
               {groups.map((g) => <th key={g.name} colSpan={g.span} className={`${th} ${GROUP_BG[g.name] ?? "bg-paper"}`}>{g.name}</th>)}
             </tr>
             <tr>
@@ -175,6 +174,7 @@ function PlannerTable() {
       </div>
       <p className="mt-2 text-sm text-muted print:hidden">
         國定假日依行政院人事行政總處辦公日曆內建，學校實際放假以校方行事曆為準。綠色字是依作業欄自動帶入的課堂進度，不需要手動輸入。
+        作業格按 Enter 跳到下一個上學日，按 Alt（Mac 為 Option）＋Enter 或 Shift＋Enter 換行。
       </p>
     </div>
   );

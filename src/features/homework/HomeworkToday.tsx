@@ -3,9 +3,10 @@ import { itemTitle, useClassData } from "../../lib/classData";
 import { fmtDate } from "../planner/logic/calendar";
 import { useToast } from "../../shared/Toast";
 import { Empty, ErrorBox, Loading, PageTitle } from "../../shared/ui";
-import { useAssignments, useCreateAssignment, useSetChecks, useUpdateAssignment } from "./api";
+import { useAssignments, useCreateAssignment, useReorderAssignments, useSetChecks, useUpdateAssignment } from "./api";
 import { HomeworkTabs } from "./HomeworkTabs";
 import { ItemSelect } from "./ItemSelect";
+import { moveItem, sortOpen } from "./logic/order";
 import { parseNums } from "./logic/parseNums";
 
 export function HomeworkToday() {
@@ -13,11 +14,12 @@ export function HomeworkToday() {
   const q = useAssignments(cls.id);
   const setChecks = useSetChecks(cls.id);
   const update = useUpdateAssignment(cls.id);
+  const reorder = useReorderAssignments(cls.id);
   const toast = useToast();
   const [selected, setSelected] = useState<string | null>(null); // null = 自動選第一份
   const [batch, setBatch] = useState("");
 
-  const open = (q.data ?? []).filter((a) => a.status === "open");
+  const open = sortOpen((q.data ?? []).filter((a) => a.status === "open"));
 
   if (q.error) return <ErrorBox error={q.error} />;
   if (q.isLoading) return <Loading />;
@@ -53,16 +55,25 @@ export function HomeworkToday() {
     });
   }
 
+  function move(index: number, delta: -1 | 1) {
+    reorder.mutate(moveItem(open, index, delta).map((x) => x.id), { onError: () => toast("順序沒有存到，請再試一次") });
+  }
+
   return (
     <>
       <PageTitle>作業小管家</PageTitle>
       <HomeworkTabs />
       <div className="tabbar mb-3">
-        {open.map((x) => (
-          <button key={x.id} className={x.id === a?.id ? "chip-on" : "chip"} onClick={() => setSelected(x.id)}>
-            {itemTitle(items, x.item_id, x.note)}
-          </button>
-        ))}
+        {open.map((x, i) => {
+          const on = x.id === a?.id;
+          return (
+            <span key={x.id} className="inline-flex shrink-0 items-center gap-1">
+              {on && i > 0 && <button className="chip px-2" aria-label="往前移" onClick={() => move(i, -1)}>◀</button>}
+              <button className={on ? "chip-on" : "chip"} onClick={() => setSelected(x.id)}>{itemTitle(items, x.item_id, x.note)}</button>
+              {on && i < open.length - 1 && <button className="chip px-2" aria-label="往後移" onClick={() => move(i, 1)}>▶</button>}
+            </span>
+          );
+        })}
         <button className={!a ? "chip-on" : "chip"} onClick={() => setSelected("new")}>＋ 新作業</button>
       </div>
 
