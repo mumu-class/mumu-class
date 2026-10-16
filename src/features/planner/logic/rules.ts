@@ -1,9 +1,12 @@
 /**
- * 課程規劃表的推算規則（設計文件 §8.4 R1–R7），由舊版 v22 程式行為移植。
+ * 課程規劃表的推算規則（主設計文件 §8.4 R1–R7；R8 其他考試與作業／訂簽分塊見 2026-10-16 回饋設計 §4.3–4.4）。
  * 只讀不寫：輸入是老師填寫的格子，輸出是畫面上顯示的推算內容。
+ * 所有作業欄都先以 splitEntries 拆成項目，每個項目分別判斷。
  */
 export type DayValues = Record<string, string | undefined>;
 export type SummaryItem = { label: string; text: string; plain: boolean };
+/** 當日作業總覽：含「訂簽」的項目放 sign，其餘項目與所有考試預告放 homework */
+export type Summary = { homework: SummaryItem[]; sign: SummaryItem[] };
 
 const NUM = /[0-9０-９一二三四五六七八九十百零]/;
 const SIGN = /訂簽/;
@@ -29,24 +32,20 @@ export function poemRoute(raw: string): "course" | "homework" | "both" {
   return "both";
 }
 
-/** 作業欄的順序（「備註」不列入作業總覽） */
+/** 列入作業總覽的欄位與順序。堂、備註已隱藏，不列入；其他考試只做預告（R8），不在這裡。 */
 export const HOMEWORK_KEYS = [
   "國預習單", "甲本", "乙本", "國習", "國簿", "國白卷", "字詞本", "字詞考", "國課練", "國單元考",
   "寫作", "閱達", "成易", "詩選", "國複卷",
   "社習", "社重", "社簿", "社白卷", "社複卷", "社單元考",
-  "其他", "備註",
+  "數學", "自然", "其他",
 ];
-const SUMMARY_KEYS = HOMEWORK_KEYS.filter((k) => k !== "備註");
 const MULTI_EXAM = new Set(["字詞考", "國單元考", "社單元考"]);
 const SINGLE_STUDY = new Set(["國課練", "字詞本"]);
 
 /** R1–R4：自動帶入「國語課程進度」的行 */
 export function autoCourseZh(day: DayValues): string[] {
   const lines: string[] = [];
-  for (const k of ["國課練", "字詞本"]) {
-    const v = String(day[k] ?? "").trim();
-    if (v && goesToCourse(v)) lines.push(`${k}：${v}`);
-  }
+  for (const k of ["國課練", "字詞本"]) splitEntries(day[k]).filter(goesToCourse).forEach((x) => lines.push(`${k}：${x}`));
   splitEntries(day["詩選"]).filter((x) => poemRoute(x) !== "homework").forEach((x) => lines.push(`詩選：${x}`));
   splitEntries(day["字詞考"]).filter(goesToCourse).forEach((x) => lines.push(`字詞考：${x}`));
   splitEntries(day["國單元考"]).filter(goesToCourse).forEach((x) => lines.push(`考${x}`));
@@ -60,30 +59,25 @@ export function autoCourseSocial(day: DayValues): string[] {
 
 export type NextDay = { vals: DayValues; dow: number };
 
-/** 當日作業總覽：當天的作業項目，加上下一個上學日的考試提醒（寫出星期，例：週一考國L3字詞考） */
-export function summaryItems(day: DayValues, next: NextDay | null): SummaryItem[] {
-  const items: SummaryItem[] = [];
-  for (const k of SUMMARY_KEYS) {
-    const v = String(day[k] ?? "").trim();
-    if (!v) continue;
-    if (MULTI_EXAM.has(k)) {
-      splitEntries(v).filter((x) => !goesToCourse(x)).forEach((x) => items.push({ label: k, text: x, plain: false }));
-      continue;
+/** 當日作業總覽：當天的作業項目，加上下一個上學日的考試預告（寫出星期，例：週一考國L3字詞考） */
+export function summaryItems(day: DayValues, next: NextDay | null): Summary {
+  const out: Summary = { homework: [], sign: [] };
+  for (const k of HOMEWORK_KEYS) {
+    for (const x of splitEntries(day[k])) {
+      if ((MULTI_EXAM.has(k) || SINGLE_STUDY.has(k)) && goesToCourse(x)) continue;
+      if (k === "詩選" && poemRoute(x) === "course") continue;
+      (SIGN.test(x) ? out.sign : out.homework).push({ label: k, text: x, plain: false });
     }
-    if (SINGLE_STUDY.has(k) && goesToCourse(v)) continue;
-    if (k === "詩選") {
-      splitEntries(v).filter((x) => poemRoute(x) !== "course").forEach((x) => items.push({ label: k, text: x, plain: false }));
-      continue;
-    }
-    items.push({ label: k, text: v, plain: false });
   }
   if (next) {
     const when = `週${WEEKDAY[next.dow]}考`;
-    splitEntries(next.vals["字詞考"]).filter(goesToCourse).forEach((x) => items.push({ label: "", text: `${when}國${x}字詞考`, plain: true }));
-    splitEntries(next.vals["國單元考"]).filter(goesToCourse).forEach((x) => items.push({ label: "", text: `${when}國${x}單元考`, plain: true }));
-    splitEntries(next.vals["社單元考"]).filter(goesToCourse).forEach((x) => items.push({ label: "", text: `${when}社${x}單元考`, plain: true }));
+    const remind = (text: string) => out.homework.push({ label: "", text, plain: true });
+    splitEntries(next.vals["字詞考"]).filter(goesToCourse).forEach((x) => remind(`${when}國${x}字詞考`));
+    splitEntries(next.vals["國單元考"]).filter(goesToCourse).forEach((x) => remind(`${when}國${x}單元考`));
+    splitEntries(next.vals["社單元考"]).filter(goesToCourse).forEach((x) => remind(`${when}社${x}單元考`));
+    splitEntries(next.vals["其他考試"]).forEach((x) => remind(`${when}${x}`));
   }
-  return items;
+  return out;
 }
 
 export function summaryText(items: SummaryItem[]): string {
