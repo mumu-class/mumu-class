@@ -51,11 +51,7 @@ export function Layout() {
   return (
     <div className="min-h-screen md:flex">
       <aside className={`print:hidden hidden md:flex md:flex-col md:border-r md:border-line md:bg-sheet md:sticky md:top-0 md:h-screen ${collapsed ? "md:w-16 md:p-2" : "md:w-52 md:p-4"}`}>
-        <div className={`mb-6 flex items-center gap-2 ${collapsed ? "justify-center" : "justify-between"}`}>
-          {!collapsed && <div className="text-lg font-black">MuMu 班級工作台</div>}
-          <button onClick={toggle} aria-label={collapsed ? "展開選單" : "收合選單"} title={collapsed ? "展開選單" : "收合選單"}
-            className="shrink-0 rounded-lg px-2 py-1 font-black text-muted hover:bg-sage-soft">{collapsed ? "»" : "«"}</button>
-        </div>
+        {!collapsed && <div className="mb-6 text-lg font-black">MuMu 班級工作台</div>}
         <nav className="flex flex-col gap-1">
           {NAV.map((n) => (
             <NavLink key={n.to} to={n.to} title={collapsed ? n.label : undefined} aria-label={collapsed ? n.label : undefined}
@@ -64,6 +60,10 @@ export function Layout() {
             </NavLink>
           ))}
         </nav>
+        <button onClick={toggle} aria-label={collapsed ? "展開選單" : "收合選單"} title={collapsed ? "展開選單" : "收合選單"}
+          className={`mt-auto rounded-lg py-2 text-sm font-bold text-muted hover:bg-sage-soft ${collapsed ? "text-center" : "px-3 text-left"}`}>
+          {collapsed ? "»" : "« 收合選單"}
+        </button>
       </aside>
 
       <div className="flex-1 min-w-0">
