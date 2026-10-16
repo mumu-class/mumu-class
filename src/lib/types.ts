@@ -5,7 +5,7 @@ export type Student = {
 export type HomeworkItem = { id: string; subject: string; name: string; sort_order: number; archived_at: string | null };
 export type Check = { student_id: string; status: "done" | "missing" };
 export type Assignment = {
-  id: string; class_id: string; item_id: string; note: string; assigned_date: string;
+  id: string; class_id: string; item_id: string; note: string; assigned_date: string; sort_order: number;
   status: "open" | "archived"; archived_at: string | null; created_at: string; homework_checks: Check[];
 };
 export type CoinTx = {
@@ -19,6 +19,6 @@ export type OffDay = { id: string; semester_id: string; date: string; reason: st
 export type PlannerColumn = {
   id: string; key: string; label: string; group_name: string;
   kind: "calendar" | "period" | "course_zh" | "course_social" | "text" | "multiline";
-  item_id: string | null; sort_order: number; in_summary: boolean;
+  item_id: string | null; sort_order: number; in_summary: boolean; hidden: boolean;
 };
 export type PlannerEntry = { id: string; semester_id: string; date: string; column_id: string; value: string };
