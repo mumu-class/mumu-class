@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { useState, type ReactNode } from "react";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { ClassProvider, useClassQuery, useItemsQuery, useStudentsQuery } from "../lib/classData";
 import { SaveStatus } from "../shared/SaveStatus";
 import { ErrorBox, Loading } from "../shared/ui";
@@ -30,18 +30,37 @@ export function ClassGate({ children }: { children: ReactNode }) {
   );
 }
 
+const SIDEBAR_KEY = "mumu.sidebar";
+
+/** 電腦版左側選單可收成只剩圖示的窄欄；記在這台裝置的瀏覽器（讀不到就預設展開） */
+function useSidebarCollapsed() {
+  const [collapsed, setCollapsed] = useState(() => {
+    try { return localStorage.getItem(SIDEBAR_KEY) === "collapsed"; } catch { return false; }
+  });
+  const toggle = () => setCollapsed((c) => {
+    try { localStorage.setItem(SIDEBAR_KEY, c ? "open" : "collapsed"); } catch { /* 無痕模式等情況寫不進去，只影響下次開啟 */ }
+    return !c;
+  });
+  return [collapsed, toggle] as const;
+}
+
 export function Layout() {
+  const [collapsed, toggle] = useSidebarCollapsed();
+  // 課程規劃表是寬表格，不受內容最大寬度限制
+  const wide = useLocation().pathname.startsWith("/planner");
   return (
     <div className="min-h-screen md:flex">
-      <aside className="print:hidden hidden md:flex md:w-52 md:flex-col md:border-r md:border-line md:bg-sheet md:p-4 md:sticky md:top-0 md:h-screen">
-        <div className="mb-6">
-          <div className="text-lg font-black">MuMu 班級工作台</div>
+      <aside className={`print:hidden hidden md:flex md:flex-col md:border-r md:border-line md:bg-sheet md:sticky md:top-0 md:h-screen ${collapsed ? "md:w-16 md:p-2" : "md:w-52 md:p-4"}`}>
+        <div className={`mb-6 flex items-center gap-2 ${collapsed ? "justify-center" : "justify-between"}`}>
+          {!collapsed && <div className="text-lg font-black">MuMu 班級工作台</div>}
+          <button onClick={toggle} aria-label={collapsed ? "展開選單" : "收合選單"} title={collapsed ? "展開選單" : "收合選單"}
+            className="shrink-0 rounded-lg px-2 py-1 font-black text-muted hover:bg-sage-soft">{collapsed ? "»" : "«"}</button>
         </div>
         <nav className="flex flex-col gap-1">
           {NAV.map((n) => (
-            <NavLink key={n.to} to={n.to}
-              className={({ isActive }) => `rounded-lg px-3 py-2 font-bold ${isActive ? "bg-sage text-white" : "hover:bg-sage-soft"}`}>
-              <span className="mr-2">{n.icon}</span>{n.label}
+            <NavLink key={n.to} to={n.to} title={collapsed ? n.label : undefined} aria-label={collapsed ? n.label : undefined}
+              className={({ isActive }) => `rounded-lg py-2 font-bold ${collapsed ? "text-center text-lg" : "px-3"} ${isActive ? "bg-sage text-white" : "hover:bg-sage-soft"}`}>
+              {collapsed ? n.icon : <><span className="mr-2">{n.icon}</span>{n.label}</>}
             </NavLink>
           ))}
         </nav>
@@ -52,7 +71,7 @@ export function Layout() {
           <span className="mr-auto font-black md:hidden">MuMu 班級工作台</span>
           <SaveStatus />
         </header>
-        <main className="mx-auto max-w-6xl px-4 pb-28 pt-4 md:pb-10">
+        <main className={`mx-auto px-4 pb-28 pt-4 md:pb-10 ${wide ? "" : "max-w-6xl"}`}>
           <Outlet />
         </main>
       </div>
