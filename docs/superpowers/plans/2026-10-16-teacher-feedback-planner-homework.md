@@ -40,7 +40,7 @@
 - Create: `supabase/tests/teacher_feedback_20261016.sql`
 - Create: `supabase/migrations/20261016120000_teacher_feedback.sql`
 
-- [ ] **Step 1: 寫失敗的資料庫測試**
+- [x] **Step 1: 寫失敗的資料庫測試**
 
 建立 `supabase/tests/teacher_feedback_20261016.sql`：
 
@@ -104,12 +104,12 @@ select 'TEACHER FEEDBACK MIGRATION TESTS PASSED' as result;
 rollback;
 ```
 
-- [ ] **Step 2: 執行，確認失敗**
+- [x] **Step 2: 執行，確認失敗**
 
 Run: `./scripts/db-test.sh`
 Expected: 失敗，訊息包含 `function upgrade_planner_columns_20261016() does not exist`（`rls_and_rpc.sql` 仍會先印出 `ALL DB TESTS PASSED`）。
 
-- [ ] **Step 3: 寫 migration**
+- [x] **Step 3: 寫 migration**
 
 建立 `supabase/migrations/20261016120000_teacher_feedback.sql`：
 
@@ -147,12 +147,12 @@ revoke execute on function public.upgrade_planner_columns_20261016() from public
 select public.upgrade_planner_columns_20261016();
 ```
 
-- [ ] **Step 4: 執行，確認通過**
+- [x] **Step 4: 執行，確認通過**
 
 Run: `./scripts/db-test.sh`
 Expected: 輸出包含 `ALL DB TESTS PASSED` 與 `TEACHER FEEDBACK MIGRATION TESTS PASSED`，結束碼 0。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add supabase/migrations/20261016120000_teacher_feedback.sql supabase/tests/teacher_feedback_20261016.sql
@@ -167,7 +167,7 @@ git commit -m "feat(db): 規劃表欄位可隱藏並新增數學、自然、其�
 - Modify: `src/lib/types.ts`
 - Modify: `src/lib/defaults.ts:13-33`
 
-- [ ] **Step 1: 型別加欄位**
+- [x] **Step 1: 型別加欄位**
 
 `src/lib/types.ts`：`Assignment` 加 `sort_order`，`PlannerColumn` 加 `hidden`。
 
@@ -186,7 +186,7 @@ export type PlannerColumn = {
 };
 ```
 
-- [ ] **Step 2: 更新預設欄位**
+- [x] **Step 2: 更新預設欄位**
 
 `src/lib/defaults.ts` 第 13 行起改成（拿掉堂、備註，其他分組改為四欄）：
 
@@ -213,12 +213,12 @@ export const DEFAULT_PLANNER_COLUMNS: Col[] = [
 ];
 ```
 
-- [ ] **Step 3: 型別檢查**
+- [x] **Step 3: 型別檢查**
 
 Run: `npm run typecheck`
 Expected: 0 個錯誤（新增的欄位只出現在查詢結果的型別上，既有程式不需要改）。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/lib/types.ts src/lib/defaults.ts
@@ -233,7 +233,7 @@ git commit -m "feat: 規劃表欄位型別加 hidden、作業加 sort_order；�
 - Modify: `src/features/planner/logic/rules.ts`
 - Test: `src/features/planner/logic/rules.test.ts`
 
-- [ ] **Step 1: 改寫測試**
+- [x] **Step 1: 改寫測試**
 
 把 `src/features/planner/logic/rules.test.ts` 整份換成：
 
@@ -371,12 +371,12 @@ describe("R8 其他考試", () => {
 });
 ```
 
-- [ ] **Step 2: 執行，確認失敗**
+- [x] **Step 2: 執行，確認失敗**
 
 Run: `npx vitest run src/features/planner/logic/rules.test.ts`
 Expected: FAIL。`summaryItems(...).homework` 為 `undefined`（目前回傳陣列），R8、數學等測試失敗。
 
-- [ ] **Step 3: 改寫 rules.ts**
+- [x] **Step 3: 改寫 rules.ts**
 
 把 `src/features/planner/logic/rules.ts` 整份換成：
 
@@ -468,14 +468,14 @@ export function summaryText(items: SummaryItem[]): string {
 }
 ```
 
-- [ ] **Step 4: 執行，確認通過**
+- [x] **Step 4: 執行，確認通過**
 
 Run: `npx vitest run src/features/planner/logic/rules.test.ts`
 Expected: PASS（全部）。
 
 `npm run typecheck` 此時會在 `PlannerRow.tsx`、`PlannerPage.tsx` 報錯（`summaryItems` 回傳型別改變），Task 4、5 會修正。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/planner/logic/rules.ts src/features/planner/logic/rules.test.ts
@@ -493,7 +493,7 @@ git commit -m "feat(planner): 作業總覽拆成作業與訂簽、逐項判斷�
 - 電腦（`md` ≥ 768px）：週次 `left-0`（40px，`w-10`）、日期 `left-10`（56px，`w-14`）、作業總覽 `left-24`（220px），右緣陰影在作業總覽。
 - 手機：週次欄隱藏；日期 `left-0` 固定並顯示週次；作業總覽不固定；右緣陰影在日期。
 
-- [ ] **Step 1: 改寫 PlannerRow.tsx**
+- [x] **Step 1: 改寫 PlannerRow.tsx**
 
 ```tsx
 import { memo, useLayoutEffect, useRef, type KeyboardEvent } from "react";
@@ -624,12 +624,12 @@ export const PlannerRow = memo(function PlannerRow({ row, vals, nextVals, nextDo
 });
 ```
 
-- [ ] **Step 2: 型別檢查（只看這個檔案）**
+- [x] **Step 2: 型別檢查（只看這個檔案）**
 
 Run: `npm run typecheck 2>&1 | grep PlannerRow || echo "PlannerRow OK"`
 Expected: `PlannerRow OK`（`PlannerPage.tsx` 的錯誤留到 Task 5）。
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/features/planner/PlannerRow.tsx
@@ -643,7 +643,7 @@ git commit -m "feat(planner): 固定欄瘦身並支援手機、作業格可換�
 **Files:**
 - Modify: `src/features/planner/PlannerPage.tsx:41,94-106,108-109,151-163,176-178`
 
-- [ ] **Step 1: 過濾隱藏欄**
+- [x] **Step 1: 過濾隱藏欄**
 
 第 41 行改成：
 
@@ -651,7 +651,7 @@ git commit -m "feat(planner): 固定欄瘦身並支援手機、作業格可換�
   const hwCols = useMemo(() => columns.filter((c) => !c.hidden && (c.kind === "text" || c.kind === "multiline")), [columns]);
 ```
 
-- [ ] **Step 2: CSV 改成兩個總覽欄、拿掉堂**
+- [x] **Step 2: CSV 改成兩個總覽欄、拿掉堂**
 
 `exportCsv` 整個函式改成：
 
@@ -672,7 +672,7 @@ git commit -m "feat(planner): 固定欄瘦身並支援手機、作業格可換�
   }
 ```
 
-- [ ] **Step 3: 表頭**
+- [x] **Step 3: 表頭**
 
 刪掉 `const stickyTh = ...` 這一行（保留 `const th = ...`），把 `<thead>` 第一個 `<tr>` 的前六個 `<th>` 換成下面五個（順序：週次、日期、作業總覽、行事曆、課堂進度；拿掉堂）：
 
@@ -686,7 +686,7 @@ git commit -m "feat(planner): 固定欄瘦身並支援手機、作業格可換�
 
 `groups.map(...)` 與第二列 `hwCols.map(...)` 不變（`groups` 由已過濾的 `hwCols` 算出，隱藏欄自然不出現）。
 
-- [ ] **Step 4: 頁尾說明加上按鍵**
+- [x] **Step 4: 頁尾說明加上按鍵**
 
 頁尾 `<p>` 的文字改成：
 
@@ -695,12 +695,12 @@ git commit -m "feat(planner): 固定欄瘦身並支援手機、作業格可換�
         作業格按 Enter 跳到下一個上學日，按 Alt（Mac 為 Option）＋Enter 或 Shift＋Enter 換行。
 ```
 
-- [ ] **Step 5: 型別檢查與全部測試**
+- [x] **Step 5: 型別檢查與全部測試**
 
 Run: `npm run typecheck && npm test`
 Expected: 0 個型別錯誤；所有測試 PASS。若 `typecheck` 抱怨 `HomeworkToday`／`HomeworkMissing` 以外的錯誤，修正後再繼續。
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/planner/PlannerPage.tsx
@@ -715,7 +715,7 @@ git commit -m "feat(planner): 表頭改為新固定欄、隱藏堂與備註、CS
 - Create: `src/features/homework/logic/order.ts`
 - Test: `src/features/homework/logic/order.test.ts`
 
-- [ ] **Step 1: 寫失敗的測試**
+- [x] **Step 1: 寫失敗的測試**
 
 建立 `src/features/homework/logic/order.test.ts`：
 
@@ -774,12 +774,12 @@ describe("missingByStudent", () => {
 });
 ```
 
-- [ ] **Step 2: 執行，確認失敗**
+- [x] **Step 2: 執行，確認失敗**
 
 Run: `npx vitest run src/features/homework/logic/order.test.ts`
 Expected: FAIL，`Failed to resolve import "./order"`。
 
-- [ ] **Step 3: 實作**
+- [x] **Step 3: 實作**
 
 建立 `src/features/homework/logic/order.ts`：
 
@@ -820,12 +820,12 @@ export function missingByStudent<A extends WithChecks, S extends { id: string; s
 }
 ```
 
-- [ ] **Step 4: 執行，確認通過**
+- [x] **Step 4: 執行，確認通過**
 
 Run: `npx vitest run src/features/homework/logic/order.test.ts`
 Expected: PASS（全部）。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/homework/logic/order.ts src/features/homework/logic/order.test.ts
@@ -840,7 +840,7 @@ git commit -m "feat(homework): 進行中作業排序與依學生整理缺交的�
 - Modify: `src/features/homework/api.ts:12,end`
 - Modify: `src/features/homework/HomeworkToday.tsx:1-20,60-67`
 
-- [ ] **Step 1: api 讀 sort_order 並加上排序的 mutation**
+- [x] **Step 1: api 讀 sort_order 並加上排序的 mutation**
 
 `useAssignments` 的 select 字串加上 `sort_order`：
 
@@ -871,7 +871,7 @@ export function useReorderAssignments(classId: string) {
 }
 ```
 
-- [ ] **Step 2: HomeworkToday 使用排序**
+- [x] **Step 2: HomeworkToday 使用排序**
 
 import 改成：
 
@@ -903,7 +903,7 @@ import { parseNums } from "./logic/parseNums";
   }
 ```
 
-- [ ] **Step 3: 標籤列加上 ◀ ▶**
+- [x] **Step 3: 標籤列加上 ◀ ▶**
 
 `<div className="tabbar mb-3">` 裡的 `open.map(...)` 換成：
 
@@ -920,12 +920,12 @@ import { parseNums } from "./logic/parseNums";
         })}
 ```
 
-- [ ] **Step 4: 型別檢查與測試**
+- [x] **Step 4: 型別檢查與測試**
 
 Run: `npm run typecheck && npm test`
 Expected: 0 個錯誤，測試全部 PASS。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/homework/api.ts src/features/homework/HomeworkToday.tsx
@@ -939,7 +939,7 @@ git commit -m "feat(homework): 今日作業可用 ◀ ▶ 調整進行中作業�
 **Files:**
 - Modify: `src/features/homework/HomeworkMissing.tsx`（整份改寫）
 
-- [ ] **Step 1: 改寫 HomeworkMissing.tsx**
+- [x] **Step 1: 改寫 HomeworkMissing.tsx**
 
 ```tsx
 import { useState } from "react";
@@ -1021,12 +1021,12 @@ export function HomeworkMissing() {
 }
 ```
 
-- [ ] **Step 2: 型別檢查、測試、建置**
+- [x] **Step 2: 型別檢查、測試、建置**
 
 Run: `npm run typecheck && npm test && npm run build`
 Expected: 全部成功。
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/features/homework/HomeworkMissing.tsx
@@ -1039,7 +1039,7 @@ git commit -m "feat(homework): 缺交總覽可切換依學生檢視個人缺交�
 
 `.env.local` 已指向本機 Supabase（`127.0.0.1:54321`），不會碰到正式資料。
 
-- [ ] **Step 1: 啟動本機 Supabase 並套用新 migration**
+- [x] **Step 1: 啟動本機 Supabase 並套用新 migration**
 
 ```bash
 supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,realtime,storage-api,postgres-meta,mailpit
@@ -1051,12 +1051,12 @@ supabase migration up
 
 Expected: 顯示套用 `20261016120000_teacher_feedback.sql`。若本機資料庫原本沒有規劃表欄位，函式不會做任何事；進入規劃表頁面時前端會用新的預設欄位建立。
 
-- [ ] **Step 2: 啟動前端**
+- [x] **Step 2: 啟動前端**
 
 用 `preview_start`，name 為 `mumu-dev`（`.claude/launch.json`）。用本機 Supabase 上的測試帳號登入；本機沒有帳號時，在本機 Auth 建一個測試帳號，帳密不要寫進回覆。絕不使用正式帳號。
 Safari 與 Chrome 的注音輸入行為不同。內建瀏覽器只能測 Chromium，所以 Step 3 的輸入法檢查在回報中註明「Safari 尚未實測」，請使用者在 Safari 上確認。
 
-- [ ] **Step 3: 規劃表檢查清單（電腦寬度）**
+- [ ] **Step 3:（2026-10-16 已在內建瀏覽器測完 Enter／Alt+Enter／Shift+Enter、其他考試預告、重新整理後保存；尚缺：Safari 注音選字、CSV 實際下載） 規劃表檢查清單（電腦寬度）**
 
 - 表頭沒有「堂」「備註」；「其他」分組為數學、自然、其他、其他考試。
 - 往右捲時週次、日期、當日作業總覽固定不動，行事曆與課堂進度會捲走。
@@ -1067,7 +1067,7 @@ Safari 與 Chrome 的注音輸入行為不同。內建瀏覽器只能測 Chromiu
 - 重新整理頁面，以上內容仍在（有存進資料庫）。
 - 匯出 CSV：有「作業總覽」「訂簽總覽」兩欄，沒有「堂」。
 
-- [ ] **Step 4: 規劃表檢查清單（手機寬度）**
+- [x] **Step 4: 規劃表檢查清單（手機寬度）**
 
 `resize_window` preset `mobile`，重新整理：
 - 週次欄不見，日期格上方顯示「第 N 週」，只有日期欄固定。
@@ -1075,7 +1075,7 @@ Safari 與 Chrome 的注音輸入行為不同。內建瀏覽器只能測 Chromiu
 
 檢查完 `resize_window` preset `desktop`。
 
-- [ ] **Step 5: 作業小管家檢查清單（手機寬度）**
+- [x] **Step 5: 作業小管家檢查清單（手機寬度）**
 
 - 建立三份作業，點第二份 → 兩側出現 ◀ ▶；按 ◀ → 移到第一位。
 - 重新整理後順序維持；「缺交總覽」的標籤順序相同。
@@ -1086,7 +1086,7 @@ Safari 與 Chrome 的注音輸入行為不同。內建瀏覽器只能測 Chromiu
 
 在規劃表連續輸入、上下捲動，確認沒有明顯卡頓。若卡頓，回報給使用者再決定是否改成「取得焦點時才換成文字框」（設計 §6），不要自行擴大範圍。
 
-- [ ] **Step 7: 截圖給使用者**
+- [x] **Step 7: 截圖給使用者**
 
 電腦版規劃表、手機版規劃表、依學生缺交各截一張圖，用 `SendUserFile` 或在回覆中附上。
 
