@@ -2,6 +2,7 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { supabaseConfigured } from "../lib/supabase";
 import { Loading } from "../shared/ui";
+import { CheckinArchive } from "../features/checkin/CheckinArchive";
 import { CheckinBoard } from "../features/checkin/CheckinBoard";
 import { CheckinHistory } from "../features/checkin/CheckinHistory";
 import { CheckinMissing } from "../features/checkin/CheckinMissing";
@@ -56,6 +57,7 @@ export function App() {
                 <Route index element={<CheckinBoard />} />
                 <Route path="missing" element={<CheckinMissing />} />
                 <Route path="history" element={<CheckinHistory />} />
+                <Route path="archive" element={<CheckinArchive />} />
               </Route>
               <Route path="/coins" element={<CoinsOverview />} />
               <Route path="/coins/new" element={<CoinsNew />} />
