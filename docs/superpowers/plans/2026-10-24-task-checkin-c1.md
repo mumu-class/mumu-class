@@ -24,6 +24,8 @@
 | 畫面右上的時鐘、系列切換（任務打卡／中午時段） | 教室模式標題列 | C2 | C1 沒有截止判定，也還沒有中午時段 |
 | 一般任務打卡的 `actor` | student／teacher | 一律 `student` | 設計 §13 #4：一般任務的補登不另外區分 |
 | 誤建的任務 | 沒提到 | 不提供刪除；可改名稱、日期、說明，或單項封存 | 封存後的紀錄不能修改，刪除會讓歷程對不起來 |
+| 學生歷程的兩個查詢（執行時調整） | — | `useStudentMarks`、`useStudentEvents` 加上 `.returns<…[]>()` | 未指定型別時，supabase-js 會把嵌入的 `checkin_tasks(...)` 推成陣列，typecheck 不過 |
+| 姓名按鈕與間距（實測後調整） | ✓／免放在姓名後面 | ✓／免改放右上角；進度條、工具列、外框間距收緊 | iPad 1180×796 實測原本高 802（超出 6px），完成的姓名被截成「測…」 |
 
 ---
 
@@ -66,7 +68,7 @@
 - Create: `supabase/tests/checkin_c1.sql`
 - Create: `supabase/migrations/20261024120000_checkin_c1.sql`
 
-- [ ] **Step 1: 寫失敗的資料庫測試**
+- [x] **Step 1: 寫失敗的資料庫測試**
 
 建立 `supabase/tests/checkin_c1.sql`：
 
@@ -283,12 +285,12 @@ select 'CHECKIN C1 DB TESTS PASSED' as result;
 rollback;
 ```
 
-- [ ] **Step 2: 執行測試，確認失敗**
+- [x] **Step 2: 執行測試，確認失敗**
 
 Run: `./scripts/db-test.sh`
 Expected: FAIL，錯誤類似 `function task_create(unknown, integer, unknown, unknown, unknown, unknown) does not exist`。
 
-- [ ] **Step 3: 寫 migration**
+- [x] **Step 3: 寫 migration**
 
 建立 `supabase/migrations/20261024120000_checkin_c1.sql`：
 
@@ -626,14 +628,14 @@ grant execute on function public.task_create(uuid, int, text, date, date, text),
   to authenticated;
 ```
 
-- [ ] **Step 4: 執行測試，確認通過**
+- [x] **Step 4: 執行測試，確認通過**
 
 Run: `./scripts/db-test.sh`
 Expected: 輸出三段結果，包含 `CHECKIN C1 DB TESTS PASSED` 與 `ALL DB TESTS PASSED`，沒有錯誤。
 
 如果某個 `assert` 失敗，訊息會是中文的那一句；先修 migration，不要改測試的預期。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add supabase/migrations/20261024120000_checkin_c1.sql supabase/tests/checkin_c1.sql
@@ -649,7 +651,7 @@ git commit -m "feat(checkin): 一般任務的資料表、RPC 與資料庫測試"
 - Modify: `src/lib/supabase.ts`（檔尾）
 - Test: `src/lib/supabase.test.ts`
 
-- [ ] **Step 1: 寫失敗的測試**
+- [x] **Step 1: 寫失敗的測試**
 
 在 `src/lib/supabase.test.ts` 把第 2 行改成：
 
@@ -681,12 +683,12 @@ describe("fetchAll", () => {
 });
 ```
 
-- [ ] **Step 2: 執行測試，確認失敗**
+- [x] **Step 2: 執行測試，確認失敗**
 
 Run: `npx vitest run src/lib/supabase.test.ts`
 Expected: FAIL，`fetchAll` 不存在（`is not a function`）。
 
-- [ ] **Step 3: 實作 `fetchAll` 與型別**
+- [x] **Step 3: 實作 `fetchAll` 與型別**
 
 在 `src/lib/supabase.ts` 檔尾加上：
 
@@ -735,12 +737,12 @@ export type CheckinSettings = { class_id: string; pin_hash: string | null; pin_s
 export type CheckinSetResult = { state: CheckinMark["state"]; done_at: string | null; event_id: number | null };
 ```
 
-- [ ] **Step 4: 執行測試，確認通過**
+- [x] **Step 4: 執行測試，確認通過**
 
 Run: `npx vitest run src/lib/supabase.test.ts && npm run typecheck`
 Expected: PASS；typecheck 沒有錯誤。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/supabase.ts src/lib/supabase.test.ts src/lib/types.ts
@@ -755,7 +757,7 @@ git commit -m "feat(checkin): 型別與分頁讀取 fetchAll"
 - Create: `src/features/checkin/logic/time.ts`、`src/features/checkin/logic/time.test.ts`
 - Create: `src/features/checkin/logic/errors.ts`、`src/features/checkin/logic/errors.test.ts`
 
-- [ ] **Step 1: 寫失敗的測試**
+- [x] **Step 1: 寫失敗的測試**
 
 `src/features/checkin/logic/time.test.ts`：
 
@@ -793,12 +795,12 @@ describe("checkinErrorText／isRuleError", () => {
 });
 ```
 
-- [ ] **Step 2: 執行測試，確認失敗**
+- [x] **Step 2: 執行測試，確認失敗**
 
 Run: `npx vitest run src/features/checkin`
 Expected: FAIL，找不到 `./time`、`./errors`。
 
-- [ ] **Step 3: 實作**
+- [x] **Step 3: 實作**
 
 `src/features/checkin/logic/time.ts`：
 
@@ -860,12 +862,12 @@ export function checkinErrorText(e: unknown): string {
 }
 ```
 
-- [ ] **Step 4: 執行測試，確認通過**
+- [x] **Step 4: 執行測試，確認通過**
 
 Run: `npx vitest run src/features/checkin`
 Expected: PASS（7 tests）。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/checkin/logic/time.ts src/features/checkin/logic/time.test.ts src/features/checkin/logic/errors.ts src/features/checkin/logic/errors.test.ts
@@ -880,7 +882,7 @@ git commit -m "feat(checkin): 台北時間格式化與錯誤訊息"
 - Create: `src/features/checkin/logic/stats.ts`、`src/features/checkin/logic/stats.test.ts`
 - Create: `src/features/checkin/logic/events.ts`、`src/features/checkin/logic/events.test.ts`
 
-- [ ] **Step 1: 寫失敗的測試**
+- [x] **Step 1: 寫失敗的測試**
 
 `src/features/checkin/logic/stats.test.ts`：
 
@@ -971,12 +973,12 @@ describe("eventText", () => {
 });
 ```
 
-- [ ] **Step 2: 執行測試，確認失敗**
+- [x] **Step 2: 執行測試，確認失敗**
 
 Run: `npx vitest run src/features/checkin/logic/stats.test.ts src/features/checkin/logic/events.test.ts`
 Expected: FAIL，找不到 `./stats`、`./events`。
 
-- [ ] **Step 3: 實作**
+- [x] **Step 3: 實作**
 
 `src/features/checkin/logic/stats.ts`：
 
@@ -1058,12 +1060,12 @@ export function eventText(e: Pick<CheckinEvent, "action" | "next" | "checkin_tas
 }
 ```
 
-- [ ] **Step 4: 執行測試，確認通過**
+- [x] **Step 4: 執行測試，確認通過**
 
 Run: `npx vitest run src/features/checkin`
 Expected: PASS。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/checkin/logic/stats.ts src/features/checkin/logic/stats.test.ts src/features/checkin/logic/events.ts src/features/checkin/logic/events.test.ts
@@ -1078,7 +1080,7 @@ git commit -m "feat(checkin): 完成數、缺交整理、歷程文字"
 - Create: `src/features/checkin/logic/tapGuard.ts`、`src/features/checkin/logic/tapGuard.test.ts`
 - Create: `src/features/checkin/logic/pin.ts`、`src/features/checkin/logic/pin.test.ts`
 
-- [ ] **Step 1: 寫失敗的測試**
+- [x] **Step 1: 寫失敗的測試**
 
 `src/features/checkin/logic/tapGuard.test.ts`：
 
@@ -1133,12 +1135,12 @@ describe("PIN", () => {
 });
 ```
 
-- [ ] **Step 2: 執行測試，確認失敗**
+- [x] **Step 2: 執行測試，確認失敗**
 
 Run: `npx vitest run src/features/checkin/logic/tapGuard.test.ts src/features/checkin/logic/pin.test.ts`
 Expected: FAIL，找不到 `./tapGuard`、`./pin`。
 
-- [ ] **Step 3: 實作**
+- [x] **Step 3: 實作**
 
 `src/features/checkin/logic/tapGuard.ts`：
 
@@ -1176,12 +1178,12 @@ export async function verifyPin(pin: string, salt: string | null, hash: string |
 }
 ```
 
-- [ ] **Step 4: 執行測試，確認通過**
+- [x] **Step 4: 執行測試，確認通過**
 
 Run: `npx vitest run src/features/checkin`
 Expected: PASS。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/checkin/logic/tapGuard.ts src/features/checkin/logic/tapGuard.test.ts src/features/checkin/logic/pin.ts src/features/checkin/logic/pin.test.ts
@@ -1197,7 +1199,7 @@ git commit -m "feat(checkin): 連點保護與 PIN 雜湊"
 
 這一層是對 Supabase 的薄包裝，沒有單元測試；Task 14 用瀏覽器實測。
 
-- [ ] **Step 1: 建立 `src/features/checkin/api.ts`**
+- [x] **Step 1: 建立 `src/features/checkin/api.ts`**
 
 ```ts
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
@@ -1412,12 +1414,12 @@ export function useSavePin(classId: string) {
 }
 ```
 
-- [ ] **Step 2: 型別檢查**
+- [x] **Step 2: 型別檢查**
 
 Run: `npm run typecheck`
 Expected: 沒有錯誤。
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/features/checkin/api.ts
@@ -1433,7 +1435,7 @@ git commit -m "feat(checkin): 任務打卡的查詢與寫入"
 - Create: `src/shared/Dialog.tsx`
 - Create: `src/features/checkin/PinPad.tsx`
 
-- [ ] **Step 1: 建立 `src/features/checkin/classroom.tsx`**
+- [x] **Step 1: 建立 `src/features/checkin/classroom.tsx`**
 
 ```tsx
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
@@ -1509,7 +1511,7 @@ export function ClassroomGuard({ children }: { children: ReactNode }) {
 }
 ```
 
-- [ ] **Step 2: 建立 `src/shared/Dialog.tsx`**
+- [x] **Step 2: 建立 `src/shared/Dialog.tsx`**
 
 ```tsx
 import type { ReactNode } from "react";
@@ -1529,7 +1531,7 @@ export function Dialog({ title, onClose, wide, children }: { title: string; onCl
 }
 ```
 
-- [ ] **Step 3: 建立 `src/features/checkin/PinPad.tsx`**
+- [x] **Step 3: 建立 `src/features/checkin/PinPad.tsx`**
 
 ```tsx
 import { useState } from "react";
@@ -1576,12 +1578,12 @@ export function PinPad({ salt, hash, onSuccess, onCancel }: {
 }
 ```
 
-- [ ] **Step 4: 型別檢查**
+- [x] **Step 4: 型別檢查**
 
 Run: `npm run typecheck`
 Expected: 沒有錯誤。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/checkin/classroom.tsx src/shared/Dialog.tsx src/features/checkin/PinPad.tsx
@@ -1599,7 +1601,7 @@ git commit -m "feat(checkin): 教室模式狀態、對話框與 PIN 數字鍵盤
 
 版面目標（設計 §7.2）：iPad 橫向 1180×796，教室模式下 2×2 張卡片不捲動。估算：標題列 56＋工具列 40＋卡片 2×320（內距 24＋標題兩行 46＋進度 6＋名字 5 列×44＋4×6 間距）＋間距 ≈ 750pt。
 
-- [ ] **Step 1: 建立 `src/features/checkin/TaskCard.tsx`**
+- [x] **Step 1: 建立 `src/features/checkin/TaskCard.tsx`**
 
 ```tsx
 import { Link } from "react-router-dom";
@@ -1671,7 +1673,7 @@ function NameButton({ mark, onTap }: { mark: CheckinMark; onTap?: () => void }) 
 }
 ```
 
-- [ ] **Step 2: 建立 `src/features/checkin/TaskEditor.tsx`**
+- [x] **Step 2: 建立 `src/features/checkin/TaskEditor.tsx`**
 
 ```tsx
 import { useState } from "react";
@@ -1780,7 +1782,7 @@ export function TaskEditor({ slot, task, onClose }: { slot: number; task?: Check
 }
 ```
 
-- [ ] **Step 3: 建立 `src/features/checkin/CheckinBoard.tsx`**
+- [x] **Step 3: 建立 `src/features/checkin/CheckinBoard.tsx`**
 
 ```tsx
 import { useState } from "react";
@@ -1888,12 +1890,12 @@ export function CheckinBoard() {
 }
 ```
 
-- [ ] **Step 4: 型別檢查**
+- [x] **Step 4: 型別檢查**
 
 Run: `npm run typecheck`
 Expected: 沒有錯誤（頁面還沒接上路由，Task 9 處理）。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/checkin/TaskCard.tsx src/features/checkin/TaskEditor.tsx src/features/checkin/CheckinBoard.tsx
@@ -1909,7 +1911,7 @@ git commit -m "feat(checkin): 打卡台、任務卡與任務編輯"
 - Modify: `src/app/App.tsx`
 - Modify: `src/app/Layout.tsx`
 
-- [ ] **Step 1: 建立 `src/features/checkin/CheckinShell.tsx`**
+- [x] **Step 1: 建立 `src/features/checkin/CheckinShell.tsx`**
 
 ```tsx
 import { useState } from "react";
@@ -2006,7 +2008,7 @@ function ClassroomBar() {
 }
 ```
 
-- [ ] **Step 2: 修改 `src/app/App.tsx`**
+- [x] **Step 2: 修改 `src/app/App.tsx`**
 
 在 import 區加上（依字母順序放在 coins 之前、Layout 之前）：
 
@@ -2049,7 +2051,7 @@ import { ClassroomGuard, ClassroomProvider } from "../features/checkin/classroom
   );
 ```
 
-- [ ] **Step 3: 修改 `src/app/Layout.tsx`**
+- [x] **Step 3: 修改 `src/app/Layout.tsx`**
 
 import 區加上：
 
@@ -2082,12 +2084,12 @@ export function Layout() {
       <nav className="print:hidden fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-line bg-sheet/95 backdrop-blur md:hidden"
 ```
 
-- [ ] **Step 4: 型別檢查、測試、建置**
+- [x] **Step 4: 型別檢查、測試、建置**
 
 Run: `npm run typecheck && npm test && npm run build`
 Expected: 全部通過。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/checkin/CheckinShell.tsx src/app/App.tsx src/app/Layout.tsx
@@ -2102,7 +2104,7 @@ git commit -m "feat(checkin): 任務打卡的路由、選單與教室模式標�
 - Create: `src/features/checkin/CheckinMissing.tsx`
 - Modify: `src/app/App.tsx`
 
-- [ ] **Step 1: 建立 `src/features/checkin/CheckinMissing.tsx`**
+- [x] **Step 1: 建立 `src/features/checkin/CheckinMissing.tsx`**
 
 ```tsx
 import { useState } from "react";
@@ -2174,7 +2176,7 @@ export function CheckinMissing() {
 }
 ```
 
-- [ ] **Step 2: 接上路由**
+- [x] **Step 2: 接上路由**
 
 `src/app/App.tsx` 加上 import：
 
@@ -2188,12 +2190,12 @@ import { CheckinMissing } from "../features/checkin/CheckinMissing";
                 <Route path="missing" element={<CheckinMissing />} />
 ```
 
-- [ ] **Step 3: 型別檢查**
+- [x] **Step 3: 型別檢查**
 
 Run: `npm run typecheck`
 Expected: 沒有錯誤。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/features/checkin/CheckinMissing.tsx src/app/App.tsx
@@ -2208,7 +2210,7 @@ git commit -m "feat(checkin): 缺交總覽"
 - Create: `src/features/checkin/CheckinHistory.tsx`
 - Modify: `src/app/App.tsx`
 
-- [ ] **Step 1: 建立 `src/features/checkin/CheckinHistory.tsx`**
+- [x] **Step 1: 建立 `src/features/checkin/CheckinHistory.tsx`**
 
 ```tsx
 import { useSearchParams } from "react-router-dom";
@@ -2309,7 +2311,7 @@ export function CheckinHistory() {
 }
 ```
 
-- [ ] **Step 2: 接上路由**
+- [x] **Step 2: 接上路由**
 
 `src/app/App.tsx` 加上 import：
 
@@ -2323,12 +2325,12 @@ import { CheckinHistory } from "../features/checkin/CheckinHistory";
                 <Route path="history" element={<CheckinHistory />} />
 ```
 
-- [ ] **Step 3: 型別檢查**
+- [x] **Step 3: 型別檢查**
 
 Run: `npm run typecheck`
 Expected: 沒有錯誤。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/features/checkin/CheckinHistory.tsx src/app/App.tsx
@@ -2343,7 +2345,7 @@ git commit -m "feat(checkin): 學生歷程"
 - Create: `src/features/checkin/CheckinArchive.tsx`
 - Modify: `src/app/App.tsx`
 
-- [ ] **Step 1: 建立 `src/features/checkin/CheckinArchive.tsx`**
+- [x] **Step 1: 建立 `src/features/checkin/CheckinArchive.tsx`**
 
 ```tsx
 import { useState } from "react";
@@ -2426,7 +2428,7 @@ function BatchDetail({ batchId }: { batchId: string }) {
 }
 ```
 
-- [ ] **Step 2: 接上路由**
+- [x] **Step 2: 接上路由**
 
 `src/app/App.tsx` 加上 import：
 
@@ -2440,12 +2442,12 @@ import { CheckinArchive } from "../features/checkin/CheckinArchive";
                 <Route path="archive" element={<CheckinArchive />} />
 ```
 
-- [ ] **Step 3: 型別檢查、建置**
+- [x] **Step 3: 型別檢查、建置**
 
 Run: `npm run typecheck && npm run build`
 Expected: 沒有錯誤。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/features/checkin/CheckinArchive.tsx src/app/App.tsx
@@ -2461,7 +2463,7 @@ git commit -m "feat(checkin): 封存紀錄"
 - Modify: `src/features/roster/SettingsPage.tsx`
 - Modify: `scripts/backup.mjs`
 
-- [ ] **Step 1: 建立 `src/features/checkin/CheckinPinSection.tsx`**
+- [x] **Step 1: 建立 `src/features/checkin/CheckinPinSection.tsx`**
 
 ```tsx
 import { useState } from "react";
@@ -2509,7 +2511,7 @@ export function CheckinPinSection() {
 }
 ```
 
-- [ ] **Step 2: 修改 `src/features/roster/SettingsPage.tsx`**
+- [x] **Step 2: 修改 `src/features/roster/SettingsPage.tsx`**
 
 import 區加上：
 
@@ -2531,7 +2533,7 @@ const BACKUP_TABLES = ["classes", "students", "homework_items", "homework_assign
   "checkin_settings", "checkin_batches", "checkin_tasks", "checkin_task_marks", "checkin_events"];
 ```
 
-- [ ] **Step 3: 修改 `scripts/backup.mjs`**
+- [x] **Step 3: 修改 `scripts/backup.mjs`**
 
 `TABLES` 換成（每晚備份本來就分頁讀取，`checkin_events` 一年 5 萬筆以上也不會被截斷）：
 
@@ -2541,12 +2543,12 @@ const TABLES = ["classes", "students", "homework_items", "homework_assignments",
   "checkin_settings", "checkin_batches", "checkin_tasks", "checkin_task_marks", "checkin_events", "holidays", "audit_log"];
 ```
 
-- [ ] **Step 4: 型別檢查、測試、建置**
+- [x] **Step 4: 型別檢查、測試、建置**
 
 Run: `npm run typecheck && npm test && npm run build`
 Expected: 全部通過。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/checkin/CheckinPinSection.tsx src/features/roster/SettingsPage.tsx scripts/backup.mjs
@@ -2561,7 +2563,7 @@ git commit -m "feat(checkin): 設定頁的教室模式 PIN；任務打卡資料�
 
 本機環境：Docker Desktop＋本機 Supabase；`.env.local` 指向 `http://127.0.0.1:54321`。測試帳號用 `.env.local` 裡的 `claude-qa@mumu.test`（只存在本機資料庫）。測試用 PIN 是 `0420`，只存在本機資料庫。
 
-- [ ] **Step 1: 套用 migration 到本機資料庫**
+- [x] **Step 1: 套用 migration 到本機資料庫**
 
 Run: `supabase status`
 Expected: 顯示 API URL `http://127.0.0.1:54321`。如果沒有在執行，先跑 `supabase start`。
@@ -2569,7 +2571,7 @@ Expected: 顯示 API URL `http://127.0.0.1:54321`。如果沒有在執行，先�
 Run: `supabase migration up --local`
 Expected: 顯示套用了 `20261024120000_checkin_c1.sql`。
 
-- [ ] **Step 2: 把測試班級補到 30 人**
+- [x] **Step 2: 把測試班級補到 30 人**
 
 Run:
 
@@ -2584,11 +2586,11 @@ on conflict do nothing;"
 
 Expected: `INSERT 0 N`，座號 1–30 都有在籍學生（已存在的座號會略過）。
 
-- [ ] **Step 3: 啟動並登入**
+- [x] **Step 3: 啟動並登入**
 
 用 `preview_start`（name: `mumu-dev`）開啟，登入 QA 帳號。到「設定」設定 PIN `0420`，看到「已設定 PIN」。
 
-- [ ] **Step 4: 一般模式的流程**
+- [x] **Step 4: 一般模式的流程**
 
 逐項確認，並用 `read_console_messages` 確認沒有錯誤：
 1. 左側選單有「✅ 任務打卡」；`/checkin` 顯示 4 格「尚未設定」。
@@ -2602,7 +2604,7 @@ Expected: `INSERT 0 N`，座號 1–30 都有在籍學生（已存在的座號�
 9. 「封存本輪紀錄」：確認視窗列出任務名稱；確定後打卡台清空；封存紀錄出現新的一張，「檢視紀錄」展開唯讀卡片（點名字沒有反應），「缺交清單」帶到該批次的缺交總覽。
 10. 設定頁把一位學生設為轉出：進行中任務的卡片少一個名字、分母減 1。
 
-- [ ] **Step 5: 連點保護**
+- [x] **Step 5: 連點保護**
 
 在打卡台建立一項任務後，用 `javascript_tool` 對同一個名字連點兩次：
 
@@ -2615,7 +2617,7 @@ b.getAttribute('aria-pressed');
 
 Expected: `"true"`（只算一次打卡）。到學生歷程確認只有 1 筆「完成打卡」。
 
-- [ ] **Step 6: 教室模式（AC41、AC42、尺寸）**
+- [x] **Step 6: 教室模式（AC41、AC42、尺寸）**
 
 1. 按「進入教室模式」：側欄、底部分頁消失，只剩一列標題列；沒有「編輯」「封存本輪紀錄」「＋ 新增任務」。
 2. `navigate` 到 `/homework`、`/settings`、`/coins`：都被導回 `/checkin`。
@@ -2632,7 +2634,7 @@ Expected: 第一個數字 ≤ 第二個（不需要捲動）。截圖留證。
 
 7. `resize_window` mobile（375×812），離開教室模式後看 `/checkin`：卡片直向排列、可以捲動、名字 3 欄。測完 `resize_window` preset `desktop`。
 
-- [ ] **Step 7: 最後的完整檢查**
+- [x] **Step 7: 最後的完整檢查**
 
 Run: `npm run typecheck && npm test && npm run build && ./scripts/db-test.sh`
 Expected: 全部通過，資料庫測試輸出三個 PASSED。
