@@ -2,6 +2,9 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { supabaseConfigured } from "../lib/supabase";
 import { Loading } from "../shared/ui";
+import { CheckinBoard } from "../features/checkin/CheckinBoard";
+import { CheckinShell } from "../features/checkin/CheckinShell";
+import { ClassroomGuard, ClassroomProvider } from "../features/checkin/classroom";
 import { CoinsHistory } from "../features/coins/CoinsHistory";
 import { CoinsNew } from "../features/coins/CoinsNew";
 import { CoinsOverview } from "../features/coins/CoinsOverview";
@@ -39,23 +42,30 @@ export function App() {
 
   return (
     <ClassGate>
-      <Routes>
-        <Route path="/seating/:layoutId/print" element={<SeatingPrint />} />
-        <Route element={<Layout />}>
-          <Route path="/homework" element={<HomeworkToday />} />
-          <Route path="/homework/missing" element={<HomeworkMissing />} />
-          <Route path="/homework/history" element={<HomeworkHistory />} />
-          <Route path="/coins" element={<CoinsOverview />} />
-          <Route path="/coins/new" element={<CoinsNew />} />
-          <Route path="/coins/history" element={<CoinsHistory />} />
-          <Route path="/coins/student/:id" element={<CoinsStudent />} />
-          <Route path="/coins/student" element={<CoinsStudent />} />
-          <Route path="/seating" element={<SeatingPage />} />
-          <Route path="/planner" element={<PlannerPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="*" element={<Navigate to="/homework" replace />} />
-        </Route>
-      </Routes>
+      <ClassroomProvider>
+        <ClassroomGuard>
+          <Routes>
+            <Route path="/seating/:layoutId/print" element={<SeatingPrint />} />
+            <Route element={<Layout />}>
+              <Route path="/homework" element={<HomeworkToday />} />
+              <Route path="/homework/missing" element={<HomeworkMissing />} />
+              <Route path="/homework/history" element={<HomeworkHistory />} />
+              <Route path="/checkin" element={<CheckinShell />}>
+                <Route index element={<CheckinBoard />} />
+              </Route>
+              <Route path="/coins" element={<CoinsOverview />} />
+              <Route path="/coins/new" element={<CoinsNew />} />
+              <Route path="/coins/history" element={<CoinsHistory />} />
+              <Route path="/coins/student/:id" element={<CoinsStudent />} />
+              <Route path="/coins/student" element={<CoinsStudent />} />
+              <Route path="/seating" element={<SeatingPage />} />
+              <Route path="/planner" element={<PlannerPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="*" element={<Navigate to="/homework" replace />} />
+            </Route>
+          </Routes>
+        </ClassroomGuard>
+      </ClassroomProvider>
     </ClassGate>
   );
 }
