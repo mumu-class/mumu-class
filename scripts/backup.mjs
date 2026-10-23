@@ -8,7 +8,8 @@ if (!url || !key) { console.error("缺少 SUPABASE_URL 或 SUPABASE_SERVICE_ROLE
 
 const db = createClient(url, key, { auth: { persistSession: false } });
 const TABLES = ["classes", "students", "homework_items", "homework_assignments", "homework_checks", "coin_transactions",
-  "seating_layouts", "seat_assignments", "semesters", "semester_off_days", "planner_columns", "planner_entries", "holidays", "audit_log"];
+  "seating_layouts", "seat_assignments", "semesters", "semester_off_days", "planner_columns", "planner_entries",
+  "checkin_settings", "checkin_batches", "checkin_tasks", "checkin_task_marks", "checkin_events", "holidays", "audit_log"];
 const PAGE = 1000;
 
 const out = { exported_at: new Date().toISOString() };
