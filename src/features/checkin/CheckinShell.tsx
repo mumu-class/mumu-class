@@ -22,7 +22,7 @@ export function CheckinShell() {
     return (
       <>
         <ClassroomBar />
-        <div className="px-3 pb-3 pt-2"><Outlet /></div>
+        <div className="px-3 py-2"><Outlet /></div>
       </>
     );
   }

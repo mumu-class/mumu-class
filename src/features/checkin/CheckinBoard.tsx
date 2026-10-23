@@ -67,12 +67,12 @@ export function CheckinBoard() {
   return (
     <>
       <div className="mb-2 flex flex-wrap items-center gap-2">
-        <button type="button" className="btn" disabled={!last || undo.isPending} onClick={runUndo}>
+        <button type="button" className="btn py-1" disabled={!last || undo.isPending} onClick={runUndo}>
           ↶ {last ? `復原：${last.label}` : "復原上一步"}
         </button>
         <span className="text-xs text-muted">綠色 ✓ 已完成・白色 未完成・灰色「免」免交・點名字打卡，再點一次取消</span>
         {canTeach && tasks.length > 0 && (
-          <button type="button" className="btn-primary ml-auto" onClick={() => setConfirmRound(true)}>封存本輪紀錄</button>
+          <button type="button" className="btn-primary ml-auto py-1" onClick={() => setConfirmRound(true)}>封存本輪紀錄</button>
         )}
       </div>
       <div className="grid gap-2 lg:grid-cols-2">

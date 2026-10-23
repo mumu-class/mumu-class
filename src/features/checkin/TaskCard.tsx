@@ -41,7 +41,7 @@ export function TaskCard({ slot, task, onTap, onEdit, onAdd }: {
         </span>
         {left > 0 && <Link className="shrink-0 font-bold text-rose-ink" to={missingLink}>未完成 {left} 人 →</Link>}
       </div>
-      <div className="my-2 h-1 rounded bg-line">
+      <div className="my-1.5 h-1 rounded bg-line">
         <div className="h-1 rounded bg-sage" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
       </div>
       <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
@@ -51,17 +51,17 @@ export function TaskCard({ slot, task, onTap, onEdit, onAdd }: {
   );
 }
 
-/** 姓名按鈕：高 44pt、單點（設計 §3.3）。顏色之外一定有文字或符號 */
+/** 姓名按鈕：高 44pt、單點（設計 §3.3）。顏色之外一定有文字或符號；✓／免放在右上角，不佔姓名的寬度 */
 function NameButton({ mark, onTap }: { mark: CheckinMark; onTap?: () => void }) {
   const look = mark.state === "done" ? "border-sage-soft bg-sage-soft text-sage"
     : mark.state === "exempt" ? "border-line bg-paper text-muted" : "border-line bg-sheet";
   return (
     <button type="button" disabled={!onTap || mark.state === "exempt"} onClick={onTap} aria-pressed={mark.state === "done"}
-      className={`flex h-11 min-w-0 touch-manipulation items-center gap-1 rounded-lg border px-1.5 text-sm font-bold disabled:cursor-default ${look}`}>
+      className={`relative flex h-11 min-w-0 touch-manipulation items-center gap-1 rounded-lg border px-1 text-sm font-bold disabled:cursor-default ${look}`}>
       <span className="text-xs opacity-70 tabular-nums">{pad2(mark.student_no)}</span>
       <span className="min-w-0 flex-1 truncate text-left">{mark.name_zh}</span>
-      {mark.state === "done" && <span aria-label="已完成">✓</span>}
-      {mark.state === "exempt" && <span>免</span>}
+      {mark.state === "done" && <span aria-label="已完成" className="absolute right-1 top-0 text-xs">✓</span>}
+      {mark.state === "exempt" && <span className="absolute right-1 top-0 text-xs">免</span>}
     </button>
   );
 }
