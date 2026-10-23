@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchAll } from "../../lib/fetchAll";
 import { must, supabase } from "../../lib/supabase";
 import type { Assignment } from "../../lib/types";
 
@@ -8,11 +9,12 @@ export function useAssignments(classId: string) {
   return useQuery({
     queryKey: key(classId),
     queryFn: () =>
-      must(
+      fetchAll((from, to) =>
         supabase.from("homework_assignments")
           .select("id,class_id,item_id,note,assigned_date,sort_order,status,archived_at,created_at,homework_checks(student_id,status)")
           .eq("class_id", classId).is("deleted_at", null)
-          .order("assigned_date", { ascending: false }).order("created_at", { ascending: false })
+          .order("assigned_date", { ascending: false }).order("created_at", { ascending: false }).order("id")
+          .range(from, to)
           .returns<Assignment[]>(),
       ),
   });
