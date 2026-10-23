@@ -3,6 +3,7 @@ import { useAuth } from "../lib/auth";
 import { supabaseConfigured } from "../lib/supabase";
 import { Loading } from "../shared/ui";
 import { CheckinBoard } from "../features/checkin/CheckinBoard";
+import { CheckinMissing } from "../features/checkin/CheckinMissing";
 import { CheckinShell } from "../features/checkin/CheckinShell";
 import { ClassroomGuard, ClassroomProvider } from "../features/checkin/classroom";
 import { CoinsHistory } from "../features/coins/CoinsHistory";
@@ -52,6 +53,7 @@ export function App() {
               <Route path="/homework/history" element={<HomeworkHistory />} />
               <Route path="/checkin" element={<CheckinShell />}>
                 <Route index element={<CheckinBoard />} />
+                <Route path="missing" element={<CheckinMissing />} />
               </Route>
               <Route path="/coins" element={<CoinsOverview />} />
               <Route path="/coins/new" element={<CoinsNew />} />
