@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { DEFAULT_PLANNER_COLUMNS, DEFAULT_SEMESTER } from "../../lib/defaults";
+import { fetchAll } from "../../lib/fetchAll";
 import { must, supabase } from "../../lib/supabase";
 import type { OffDay, PlannerColumn, PlannerEntry, Semester } from "../../lib/types";
 
@@ -51,7 +52,8 @@ export function useEntries(semesterId: string | undefined) {
     enabled: !!semesterId,
     staleTime: Infinity,
     refetchOnWindowFocus: false,
-    queryFn: () => must(supabase.from("planner_entries").select("*").eq("semester_id", semesterId!).limit(20000).returns<PlannerEntry[]>()),
+    queryFn: () => fetchAll((from, to) =>
+      supabase.from("planner_entries").select("*").eq("semester_id", semesterId!).order("id").range(from, to).returns<PlannerEntry[]>()),
   });
 }
 

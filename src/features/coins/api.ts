@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchAll } from "../../lib/fetchAll";
 import { must, supabase } from "../../lib/supabase";
 import type { CoinTx } from "../../lib/types";
 
@@ -8,8 +9,8 @@ export function useTxs(classId: string) {
   return useQuery({
     queryKey: key(classId),
     queryFn: async () => {
-      const rows = await must(supabase.from("coin_transactions").select("*").eq("class_id", classId)
-        .order("created_at", { ascending: false }).limit(10000).returns<CoinTx[]>());
+      const rows = await fetchAll((from, to) => supabase.from("coin_transactions").select("*").eq("class_id", classId)
+        .order("created_at", { ascending: false }).order("id").range(from, to).returns<CoinTx[]>());
       return rows.map((t) => ({ ...t, delta: Number(t.delta) }));
     },
   });
