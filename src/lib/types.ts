@@ -43,8 +43,63 @@ export type CheckinStudentMark = CheckinMark & {
 export type CheckinEvent = {
   id: number; action: "done" | "cancel" | "undo" | "exempt" | "unexempt" | "leave" | "unleave" | "teacher_fill";
   actor: "student" | "teacher"; at: string; task_id: string | null;
-  next: { state?: string; done_at?: string | null } | null; checkin_tasks: { name: string } | null;
+  /** 中午事件才有（一般任務的查詢不選這四欄） */
+  day_id?: string | null; day_item_id?: string | null;
+  next: { state?: string; done_at?: string | null; result?: NoonResult; on_leave?: boolean } | null;
+  checkin_tasks?: { name: string } | null;
+  noon_day_items?: { name: string } | null; noon_days?: { date: string } | null;
 };
-export type CheckinSettings = { class_id: string; pin_hash: string | null; pin_salt: string | null };
+export type CheckinSettings = {
+  class_id: string; pin_hash: string | null; pin_salt: string | null; noon_timeline: NoonTimelineEntry[];
+};
 /** task_set_done、task_set_exempt、checkin_undo 的回傳值；沒有實際寫入時 event_id 是 null */
 export type CheckinSetResult = { state: CheckinMark["state"]; done_at: string | null; event_id: number | null };
+
+// ───────────── 中午時段（設計 §5.3；SQL 的 noon_compute_summary 與前端 computeSummary 共用 NoonSummary 的形狀） ─────────────
+
+export type NoonResult = "pending" | "ontime" | "late";
+export type NoonSource = "student" | "teacher";
+/** 午餐時序的一格，例如 { time: "12:30", label: "加餐、倒餐" } */
+export type NoonTimelineEntry = { time: string; label: string };
+/** 固定任務的範本。deadline 是 Postgres 的 time，讀出來可能是 "12:40:00"，比較前先取前 5 碼 */
+export type NoonItem = { id: string; class_id: string; name: string; deadline: string; sort_order: number; archived_at: string | null };
+export type NoonDayItem = { id: string; day_id: string; template_id: string; name: string; deadline: string; sort_order: number };
+export type NoonDayStudent = {
+  day_id: string; student_id: string; student_no: number; name_zh: string; on_leave: boolean; removed_at: string | null;
+};
+export type NoonMark = {
+  day_item_id: string; student_id: string; day_id: string; result: NoonResult; done_at: string | null; source: NoonSource | null;
+};
+export type NoonSummaryItem = {
+  /** 沒有紀錄（只有範本預覽）時前端算出的統計是空字串 */
+  day_item_id: string; template_id: string; name: string; deadline: string; sort_order: number;
+  ontime: number; late: number; pending: number; leave: number; total: number;
+};
+export type NoonSummaryStudent = {
+  student_id: string; student_no: number; name_zh: string; on_leave: boolean;
+  ontime: number; late: number; pending: number; total: number;
+};
+export type NoonSummary = {
+  items: NoonSummaryItem[]; students: NoonSummaryStudent[];
+  overall: { ontime: number; late: number; pending: number; total: number; students: number; leave_students: number; items: number };
+};
+export type NoonDayRow = {
+  id: string; class_id: string; date: string; status: "open" | "archived";
+  settled_at: string | null; settled_version: number | null; settled_summary: NoonSummary | null;
+  scheduled_archive_at: string; archived_at: string | null; archived_by: "schedule" | "catchup" | null;
+  final_summary: NoonSummary | null; revised_at: string | null;
+};
+export type NoonDay = NoonDayRow & { noon_day_items: NoonDayItem[]; noon_day_students: NoonDayStudent[]; noon_marks: NoonMark[] };
+/** 學生在某一天的打卡（含任務快照與日期），給學生歷程頁用 */
+export type NoonStudentMark = NoonMark & {
+  noon_day_items: { name: string; deadline: string; sort_order: number }; noon_days: { date: string; status: "open" | "archived" };
+};
+/** noon_today：不寫入，只回傳伺服器時間與今天紀錄的狀態；沒有紀錄時 day_id、status 是 null，version 是 0 */
+export type NoonToday = {
+  now: string; date: string; after_cutoff: boolean; day_id: string | null; status: "open" | "archived" | null; version: number;
+};
+/** noon_set_done、noon_teacher_fill、checkin_undo（中午事件）的回傳值；沒有實際寫入時 event_id 是 null */
+export type NoonSetResult = {
+  result: NoonResult; done_at: string | null; source: NoonSource | null; event_id: number | null; day_id: string;
+};
+export type NoonLeaveResult = { on_leave: boolean; event_id: number | null; day_id: string };

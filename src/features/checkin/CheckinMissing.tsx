@@ -3,7 +3,10 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useClassData } from "../../lib/classData";
 import { Empty, ErrorBox, Loading } from "../../shared/ui";
 import { useBatches, useBatchTasks, useOpenTasks } from "./api";
+import { useXlsxExport } from "./exportXlsx";
+import { missingRows } from "./logic/exportRows";
 import { matchStudent, missingByStudent, withLiveNames } from "./logic/stats";
+import { taipeiToday } from "./logic/time";
 
 /** 缺交總覽：範圍是進行中或某一次封存；網址 ?batch=…&task=… 讓打卡台與封存紀錄可以直接帶篩選過來 */
 export function CheckinMissing() {
@@ -16,6 +19,7 @@ export function CheckinMissing() {
   const batch = useBatchTasks(batchId || null);
   const batches = useBatches(cls.id);
   const q = batchId ? batch : open;
+  const exporter = useXlsxExport();
 
   if (q.error || batches.error) return <ErrorBox error={q.error || batches.error} />;
   if (q.isLoading || batches.isLoading) return <Loading />;
@@ -41,7 +45,11 @@ export function CheckinMissing() {
         <input aria-label="搜尋座號或姓名" className="input" placeholder="搜尋座號或姓名" value={search}
           onChange={(e) => setSearch(e.target.value)} />
       </div>
-      <p className="mb-3 text-sm text-muted">{tasks.length} 項任務・{rows.length} 位學生有未完成任務（免交、已轉出不算）</p>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <p className="text-sm text-muted">{tasks.length} 項任務・{rows.length} 位學生有未完成任務（免交、已轉出不算）</p>
+        <button type="button" className="btn ml-auto" disabled={rows.length === 0 || exporter.busy}
+          onClick={() => exporter.run(`缺交清單_${taipeiToday()}.xlsx`, () => [missingRows(rows, source)])}>匯出 Excel</button>
+      </div>
       {tasks.length === 0 ? (
         <Empty>{batchId ? "這次封存沒有符合的任務。" : "目前沒有進行中的任務。"}</Empty>
       ) : rows.length === 0 ? (

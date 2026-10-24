@@ -9,12 +9,14 @@ if (!url || !key) { console.error("缺少 SUPABASE_URL 或 SUPABASE_SERVICE_ROLE
 const db = createClient(url, key, { auth: { persistSession: false } });
 const TABLES = ["classes", "students", "homework_items", "homework_assignments", "homework_checks", "coin_transactions",
   "seating_layouts", "seat_assignments", "semesters", "semester_off_days", "planner_columns", "planner_entries",
-  "checkin_settings", "checkin_batches", "checkin_tasks", "checkin_task_marks", "checkin_events", "holidays", "audit_log"];
+  "checkin_settings", "checkin_batches", "checkin_tasks", "checkin_task_marks", "checkin_events",
+  "noon_items", "noon_days", "noon_day_items", "noon_day_students", "noon_marks", "holidays", "audit_log"];
 const PAGE = 1000;
 // 分頁要依唯一鍵排序，否則每頁的順序不保證一致；沒列出的表用 id
 const KEYS = {
   holidays: ["date"], homework_checks: ["assignment_id", "student_id"], seat_assignments: ["layout_id", "row", "col"],
   checkin_settings: ["class_id"], checkin_task_marks: ["task_id", "student_id"],
+  noon_day_students: ["day_id", "student_id"], noon_marks: ["day_item_id", "student_id"],
 };
 
 const out = { exported_at: new Date().toISOString() };

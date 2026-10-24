@@ -7,6 +7,10 @@ const TEXT = new Map([
   ["checkin_forbidden", "沒有權限，請重新登入"],
   ["checkin_not_undoable", "這個動作不能復原"],
   ["checkin_archive_invalid", "任務狀態已變動，請重新整理後再封存"],
+  ["noon_closed", "已過 17:00，今天的紀錄已鎖定"],
+  ["noon_on_leave", "這位同學今天請假"],
+  ["noon_no_item", "任務已更新，請重新整理"],
+  ["noon_no_day", "那天沒有中午紀錄"],
 ]);
 
 type ErrLike = { message?: unknown; code?: unknown } | null | undefined;

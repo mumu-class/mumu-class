@@ -24,3 +24,9 @@ export function taipeiToday(now = new Date()): string {
   const p = parts(now);
   return `${p.year}-${p.month}-${p.day}`;
 }
+
+/** 2026-10-24 12:25，匯出 Excel 用（台北時間） */
+export function fmtStamp(iso: string): string {
+  const p = parts(new Date(iso));
+  return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}`;
+}

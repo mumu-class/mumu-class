@@ -29,7 +29,7 @@ export function CheckinPinSection() {
       <h2 className="mb-1 text-lg font-black">任務打卡｜教室模式 PIN</h2>
       <p className="mb-3 text-sm text-muted">
         {hasPin ? "已設定。" : "尚未設定，設定後才能進入教室模式。"}
-        教室模式下，編輯任務、封存、標免交、離開教室模式都要輸入 PIN。PIN 只是防止學生在白板上誤按，忘記時在這裡重設即可。
+        教室模式下，編輯任務、封存、標免交、中午的補登、請假與結算、離開教室模式都要輸入 PIN。PIN 只是防止學生在白板上誤按，忘記時在這裡重設即可。
       </p>
       <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
         <input id="pin-new" aria-label="新的 PIN" className="input" type="password" inputMode="numeric" maxLength={4}

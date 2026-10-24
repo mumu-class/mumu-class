@@ -24,7 +24,7 @@ export type Rejected = { rejected: string };
 export const isRejected = (x: unknown): x is Rejected => typeof x === "object" && x !== null && "rejected" in x;
 
 /** 業務規則的拒絕（已封存、狀態已變動…）重試也沒用：回傳 rejected 交給畫面提示，不進 SaveStatus 的重試；網路錯誤才丟出去 */
-async function callRpc<T>(fn: string, args: Record<string, unknown>): Promise<T | Rejected> {
+export async function callRpc<T>(fn: string, args: Record<string, unknown>): Promise<T | Rejected> {
   const { data, error } = await supabase.rpc(fn, args);
   if (error) {
     if (isRuleError(error)) return { rejected: checkinErrorText(error) };
@@ -98,7 +98,7 @@ export function useCheckinSettings(classId: string) {
   return useQuery({
     queryKey: checkinKeys.settings(classId),
     queryFn: async (): Promise<CheckinSettings | null> => {
-      const { data, error } = await supabase.from("checkin_settings").select("class_id,pin_hash,pin_salt").eq("class_id", classId).maybeSingle();
+      const { data, error } = await supabase.from("checkin_settings").select("class_id,pin_hash,pin_salt,noon_timeline").eq("class_id", classId).maybeSingle();
       if (error) throw error;
       return data as CheckinSettings | null;
     },
