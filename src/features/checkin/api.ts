@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
-import { fetchAll, must, supabase } from "../../lib/supabase";
+import { fetchAll } from "../../lib/fetchAll";
+import { must, supabase } from "../../lib/supabase";
 import type {
   CheckinBatch, CheckinEvent, CheckinMark, CheckinSetResult, CheckinSettings, CheckinStudentMark, CheckinTask, CheckinTaskStat,
 } from "../../lib/types";

@@ -11,15 +11,22 @@ const TABLES = ["classes", "students", "homework_items", "homework_assignments",
   "seating_layouts", "seat_assignments", "semesters", "semester_off_days", "planner_columns", "planner_entries",
   "checkin_settings", "checkin_batches", "checkin_tasks", "checkin_task_marks", "checkin_events", "holidays", "audit_log"];
 const PAGE = 1000;
+// 分頁要依唯一鍵排序，否則每頁的順序不保證一致；沒列出的表用 id
+const KEYS = {
+  holidays: ["date"], homework_checks: ["assignment_id", "student_id"], seat_assignments: ["layout_id", "row", "col"],
+  checkin_settings: ["class_id"], checkin_task_marks: ["task_id", "student_id"],
+};
 
 const out = { exported_at: new Date().toISOString() };
 for (const t of TABLES) {
   const rows = [];
-  for (let from = 0; ; from += PAGE) {
-    const { data, error } = await db.from(t).select("*").range(from, from + PAGE - 1);
+  // 讀到空頁才停：即使正式站的 max_rows 比 PAGE 小也不會少資料（同 src/lib/fetchAll.ts）
+  for (;;) {
+    const query = (KEYS[t] ?? ["id"]).reduce((q, k) => q.order(k), db.from(t).select("*"));
+    const { data, error } = await query.range(rows.length, rows.length + PAGE - 1);
     if (error) { console.error(`${t}: ${error.message}`); process.exit(1); }
+    if (!data.length) break;
     rows.push(...data);
-    if (data.length < PAGE) break;
   }
   out[t] = rows;
   console.error(`${t}: ${rows.length}`);

@@ -22,16 +22,3 @@ export async function must<T>(p: PromiseLike<{ data: T | null; error: unknown }>
   if (error) throw error;
   return data as NonNullable<T>; // 沒有 select 的寫入會回傳 null，呼叫端不會使用它
 }
-
-/** 分頁讀完全部資料。Supabase 一次最多回 1000 列（max_rows），超過的會被直接截掉、不會報錯；呼叫端要用唯一的欄位排序 */
-export async function fetchAll<T>(
-  page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>,
-  size = 1000,
-): Promise<T[]> {
-  const rows: T[] = [];
-  for (let from = 0; ; from += size) {
-    const data = await must(page(from, from + size - 1));
-    rows.push(...data);
-    if (data.length < size) return rows;
-  }
-}
