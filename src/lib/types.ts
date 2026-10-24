@@ -22,3 +22,29 @@ export type PlannerColumn = {
   item_id: string | null; sort_order: number; in_summary: boolean; hidden: boolean;
 };
 export type PlannerEntry = { id: string; semester_id: string; date: string; column_id: string; value: string };
+
+export type CheckinMark = {
+  student_id: string; student_no: number; name_zh: string;
+  state: "pending" | "done" | "exempt"; done_at: string | null; removed_at: string | null;
+};
+export type CheckinTask = {
+  id: string; class_id: string; slot: number; name: string; task_date: string; due_date: string | null; note: string;
+  status: "open" | "archived"; batch_id: string | null; archived_at: string | null; checkin_task_marks: CheckinMark[];
+};
+export type CheckinBatch = { id: string; class_id: string; kind: "round" | "single"; title: string; archived_at: string };
+export type CheckinTaskStat = {
+  task_id: string; class_id: string; batch_id: string | null; name: string; slot: number; task_date: string;
+  status: "open" | "archived"; total: number; done: number; exempt: number;
+};
+export type CheckinStudentMark = CheckinMark & {
+  task_id: string;
+  checkin_tasks: { name: string; slot: number; task_date: string; status: "open" | "archived"; batch_id: string | null };
+};
+export type CheckinEvent = {
+  id: number; action: "done" | "cancel" | "undo" | "exempt" | "unexempt" | "leave" | "unleave" | "teacher_fill";
+  actor: "student" | "teacher"; at: string; task_id: string | null;
+  next: { state?: string; done_at?: string | null } | null; checkin_tasks: { name: string } | null;
+};
+export type CheckinSettings = { class_id: string; pin_hash: string | null; pin_salt: string | null };
+/** task_set_done、task_set_exempt、checkin_undo 的回傳值；沒有實際寫入時 event_id 是 null */
+export type CheckinSetResult = { state: CheckinMark["state"]; done_at: string | null; event_id: number | null };

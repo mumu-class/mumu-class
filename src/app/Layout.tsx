@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { useClassroom } from "../features/checkin/classroom";
 import { ClassProvider, useClassQuery, useItemsQuery, useStudentsQuery } from "../lib/classData";
 import { SaveStatus } from "../shared/SaveStatus";
 import { ErrorBox, Loading } from "../shared/ui";
@@ -7,6 +8,7 @@ import { Setup } from "./Setup";
 
 const NAV = [
   { to: "/homework", icon: "✏️", label: "作業小管家" },
+  { to: "/checkin", icon: "✅", label: "任務打卡" },
   { to: "/coins", icon: "🪙", label: "MUMU 幣" },
   { to: "/seating", icon: "🪑", label: "座位表" },
   { to: "/planner", icon: "📚", label: "課程規劃" },
@@ -45,9 +47,13 @@ function useSidebarCollapsed() {
 }
 
 export function Layout() {
+  const { classroom } = useClassroom();
   const [collapsed, toggle] = useSidebarCollapsed();
-  // 課程規劃表是寬表格，不受內容最大寬度限制
-  const wide = useLocation().pathname.startsWith("/planner");
+  // 課程規劃表、任務打卡是寬版面，不受內容最大寬度限制
+  const path = useLocation().pathname;
+  const wide = path.startsWith("/planner") || path.startsWith("/checkin");
+  // 教室模式：iPad 投到白板給全班操作，不顯示工作台的選單（設計 §3.2）
+  if (classroom) return <div className="min-h-dvh"><Outlet /></div>;
   return (
     <div className="min-h-screen md:flex">
       <aside className={`print:hidden hidden md:flex md:flex-col md:border-r md:border-line md:bg-sheet md:sticky md:top-0 md:h-screen ${collapsed ? "md:w-16 md:p-2" : "md:w-52 md:p-4"}`}>
@@ -76,7 +82,7 @@ export function Layout() {
         </main>
       </div>
 
-      <nav className="print:hidden fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-line bg-sheet/95 backdrop-blur md:hidden"
+      <nav className="print:hidden fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-line bg-sheet/95 backdrop-blur md:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
         {NAV.map((n) => (
           <NavLink key={n.to} to={n.to}
