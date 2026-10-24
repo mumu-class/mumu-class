@@ -5,6 +5,7 @@ import { fetchAll } from "../../lib/fetchAll";
 import { must, supabase } from "../../lib/supabase";
 import type { Student } from "../../lib/types";
 import { CheckinPinSection } from "../checkin/CheckinPinSection";
+import { NoonSettingsSection } from "../checkin/NoonSettingsSection";
 import { downloadText } from "../coins/logic/money";
 import { useToast } from "../../shared/Toast";
 import { PageTitle } from "../../shared/ui";
@@ -18,6 +19,7 @@ export function SettingsPage() {
         <RosterSection />
         <ItemsSection />
         <CheckinPinSection />
+        <NoonSettingsSection />
         <BackupSection />
       </div>
     </>
@@ -135,11 +137,13 @@ function ItemsSection() {
 
 const BACKUP_TABLES = ["classes", "students", "homework_items", "homework_assignments", "homework_checks", "coin_transactions",
   "seating_layouts", "seat_assignments", "semesters", "semester_off_days", "planner_columns", "planner_entries",
-  "checkin_settings", "checkin_batches", "checkin_tasks", "checkin_task_marks", "checkin_events"];
+  "checkin_settings", "checkin_batches", "checkin_tasks", "checkin_task_marks", "checkin_events",
+  "noon_items", "noon_days", "noon_day_items", "noon_day_students", "noon_marks"];
 /** 分頁要依唯一鍵排序；沒列出的表用 id */
 const BACKUP_KEYS: Record<string, string[]> = {
   homework_checks: ["assignment_id", "student_id"], seat_assignments: ["layout_id", "row", "col"],
   checkin_settings: ["class_id"], checkin_task_marks: ["task_id", "student_id"],
+  noon_day_students: ["day_id", "student_id"], noon_marks: ["day_item_id", "student_id"],
 };
 
 function BackupSection() {
