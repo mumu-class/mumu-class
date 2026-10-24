@@ -107,7 +107,6 @@ function TimelineEditor({ classId, initial }: { classId: string; initial: NoonTi
         <button type="button" className="btn" onClick={() => setRows([...rows, { time: "12:30", label: "" }])}>新增一格</button>
         <button type="button" className="btn-primary" disabled={save.isPending} onClick={submit}>儲存午餐時序</button>
       </div>
-      <p className="mt-2 text-sm text-muted">{NOTE}</p>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { ErrorBox, Loading } from "../../shared/ui";
 import { isRejected, useCheckinSettings } from "./api";
 import { useClassroom } from "./classroom";
 import { buildNoonView, computeSummary, type NoonViewItem, type NoonViewStudent } from "./logic/noon";
+import { DEFAULT_NOON_TIMELINE } from "./logic/noonPages";
 import { createTapGuard } from "./logic/tapGuard";
 import { useAfterCutoff, useServerNow } from "./NoonClock";
 import { NoonRow, type NoonMode } from "./NoonRow";
@@ -14,12 +15,6 @@ import {
   useNoonArchiveCatchup, useNoonDay, useNoonItems, useNoonSetDone, useNoonSetLeave, useNoonSettle, useNoonTeacherFill,
   useNoonToday, useNoonUndo,
 } from "./noonApi";
-
-const DEFAULT_TIMELINE: NoonTimelineEntry[] = [
-  { time: "12:30", label: "加餐、倒餐" },
-  { time: "12:40", label: "全班收餐" },
-  { time: "12:45", label: "回到座位" },
-];
 
 const MODES: { mode: NoonMode; label: string; hint: string }[] = [
   { mode: "tap", label: "打卡", hint: "" },
@@ -68,7 +63,7 @@ export function NoonBoard() {
   // 17:00 之後老師只能用請假；不是老師就一律是打卡
   const effMode: NoonMode = !canTeach ? "tap" : locked && mode !== "leave" ? "tap" : mode;
   const timeline = settings.data === undefined && !settings.isError ? null
-    : settings.data?.noon_timeline?.length ? settings.data.noon_timeline : DEFAULT_TIMELINE;
+    : settings.data?.noon_timeline?.length ? settings.data.noon_timeline : DEFAULT_NOON_TIMELINE;
 
   function tap(item: NoonViewItem, s: NoonViewStudent) {
     if (!guard(`${item.template_id}:${s.student_id}`)) return;

@@ -7,7 +7,10 @@ import { CheckinBoard } from "../features/checkin/CheckinBoard";
 import { CheckinHistory } from "../features/checkin/CheckinHistory";
 import { CheckinMissing } from "../features/checkin/CheckinMissing";
 import { CheckinShell } from "../features/checkin/CheckinShell";
+import { NoonArchive } from "../features/checkin/NoonArchive";
 import { NoonBoard } from "../features/checkin/NoonBoard";
+import { NoonHistory } from "../features/checkin/NoonHistory";
+import { NoonSummary } from "../features/checkin/NoonSummary";
 import { ClassroomGuard, ClassroomProvider } from "../features/checkin/classroom";
 import { CoinsHistory } from "../features/coins/CoinsHistory";
 import { CoinsNew } from "../features/coins/CoinsNew";
@@ -57,6 +60,9 @@ export function App() {
               <Route path="/checkin" element={<CheckinShell />}>
                 <Route index element={<CheckinBoard />} />
                 <Route path="noon" element={<NoonBoard />} />
+                <Route path="noon/summary" element={<NoonSummary />} />
+                <Route path="noon/history" element={<NoonHistory />} />
+                <Route path="noon/archive" element={<NoonArchive />} />
                 <Route path="missing" element={<CheckinMissing />} />
                 <Route path="history" element={<CheckinHistory />} />
                 <Route path="archive" element={<CheckinArchive />} />
