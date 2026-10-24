@@ -7,6 +7,7 @@ import type {
   NoonTimelineEntry, NoonToday,
 } from "../../lib/types";
 import { callRpc, checkinKeys, isRejected } from "./api";
+import type { NoonStudentDay } from "./logic/exportRows";
 import { judge } from "./logic/noon";
 
 const ITEM_COLS = "id,class_id,name,deadline,sort_order,archived_at";
@@ -93,6 +94,32 @@ export function useNoonStudentMarks(studentId: string, date: string) {
       return rows.sort((a, b) => a.noon_day_items.sort_order - b.noon_day_items.sort_order);
     },
   });
+}
+
+/**
+ * 匯出用：一位學生所有日期的中午紀錄（名單快照＋任務快照＋打卡），按下匯出時才讀，不在頁面載入時讀。
+ * 沒有打卡列的任務就是未完成（和 buildNoonView 一致）；轉出（removed_at）的日子不列
+ */
+export async function fetchNoonStudentHistory(studentId: string): Promise<NoonStudentDay[]> {
+  type Row = {
+    on_leave: boolean; removed_at: string | null;
+    noon_days: { date: string; status: "open" | "archived"; noon_day_items: { id: string; name: string; deadline: string; sort_order: number }[] };
+  };
+  const [days, marks] = await Promise.all([
+    fetchAll<Row>((from, to) => supabase.from("noon_day_students")
+      .select("on_leave,removed_at,day_id,noon_days!inner(date,status,noon_day_items(id,name,deadline,sort_order))")
+      .eq("student_id", studentId).order("day_id").range(from, to).returns<Row[]>()),
+    fetchAll<Pick<NoonMark, "day_item_id" | "result" | "done_at" | "source">>((from, to) => supabase.from("noon_marks")
+      .select("day_item_id,result,done_at,source").eq("student_id", studentId).order("day_item_id").range(from, to)),
+  ]);
+  const markOf = new Map(marks.map((m) => [m.day_item_id, m]));
+  return days.filter((d) => !d.removed_at).map((d) => ({
+    date: d.noon_days.date, archived: d.noon_days.status === "archived", on_leave: d.on_leave,
+    items: d.noon_days.noon_day_items.map((it) => {
+      const m = markOf.get(it.id);
+      return { name: it.name, deadline: it.deadline, sort_order: it.sort_order, result: m?.result ?? "pending", done_at: m?.done_at ?? null, source: m?.source ?? null };
+    }),
+  }));
 }
 
 /** 中午頁面載入時補做 17:00 封存（排程失敗時的後備，設計 §6.4）：每個班級只呼叫一次，有處理的日子就重讀 */

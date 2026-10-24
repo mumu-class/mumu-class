@@ -2,11 +2,13 @@ import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useClassData } from "../../lib/classData";
 import { Empty, ErrorBox, Loading } from "../../shared/ui";
+import { useXlsxExport } from "./exportXlsx";
 import { eventText } from "./logic/events";
+import { noonStudentRows } from "./logic/exportRows";
 import { buildNoonView, computeSummary, fmtRate } from "./logic/noon";
 import { dateOptions } from "./logic/noonPages";
 import { fmtTime } from "./logic/time";
-import { useNoonArchiveCatchup, useNoonDay, useNoonDays, useNoonStudentEvents, useNoonToday } from "./noonApi";
+import { fetchNoonStudentHistory, useNoonArchiveCatchup, useNoonDay, useNoonDays, useNoonStudentEvents, useNoonToday } from "./noonApi";
 
 type Status = "ontime" | "late" | "pending" | "leave";
 const STATUS_TEXT: Record<Status, string> = { ontime: "準時完成", late: "逾時完成", pending: "未完成", leave: "請假" };
@@ -23,6 +25,7 @@ export function NoonHistory() {
   const date = params.get("date") || today.data?.date || "";
   const day = useNoonDay(cls.id, date);
   const events = useNoonStudentEvents(sid);
+  const exporter = useXlsxExport();
 
   // 用當天的快照畫，才看得到請假和「沒有任何打卡」的任務；當天沒有紀錄就是 null
   const view = useMemo(() => (day.data ? buildNoonView(day.data, [], []) : null), [day.data]);
@@ -57,6 +60,10 @@ export function NoonHistory() {
         <select aria-label="日期" className="input" value={date} onChange={(e) => set("date", e.target.value)}>
           {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
+      </div>
+      <div className="mb-3 flex justify-end">
+        <button type="button" className="btn" disabled={!sid || exporter.busy}
+          onClick={() => exporter.run(`中午歷程_${String(student?.student_no ?? "").padStart(2, "0")}${student?.name_zh ?? ""}.xlsx`, async () => [noonStudentRows(await fetchNoonStudentHistory(sid))])}>匯出 Excel（全部日期）</button>
       </div>
 
       {day.isLoading ? <Loading /> : !day.data ? (

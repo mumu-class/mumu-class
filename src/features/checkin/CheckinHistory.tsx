@@ -3,7 +3,9 @@ import { useClassData } from "../../lib/classData";
 import type { CheckinMark } from "../../lib/types";
 import { ErrorBox, Loading } from "../../shared/ui";
 import { useBatches, useStudentEvents, useStudentMarks } from "./api";
+import { useXlsxExport } from "./exportXlsx";
 import { eventText } from "./logic/events";
+import { taskStudentRows } from "./logic/exportRows";
 import { fmtDateTime, fmtTime } from "./logic/time";
 
 const STATE_TEXT: Record<CheckinMark["state"], string> = { done: "已完成", pending: "未完成", exempt: "免交" };
@@ -18,6 +20,7 @@ export function CheckinHistory() {
   const marks = useStudentMarks(sid);
   const events = useStudentEvents(sid);
   const batches = useBatches(cls.id);
+  const exporter = useXlsxExport();
 
   const error = marks.error || events.error || batches.error;
   if (error) return <ErrorBox error={error} />;
@@ -54,6 +57,8 @@ export function CheckinHistory() {
 
       <div className="card mb-3 flex flex-wrap items-baseline gap-x-8 gap-y-1 p-4">
         <span className="text-xl font-black">{student?.student_no} {student?.name_zh}</span>
+        <button type="button" className="btn order-last ml-auto" disabled={rows.length === 0 || exporter.busy}
+          onClick={() => exporter.run(`一般任務_${String(student?.student_no ?? "").padStart(2, "0")}${student?.name_zh ?? ""}.xlsx`, () => [taskStudentRows(rows, batchTitle)])}>匯出 Excel</button>
         <span className="text-xl font-bold text-sage">已完成 {count("done")} 項</span>
         <span className="text-xl font-bold text-rose-ink">未完成 {count("pending")} 項</span>
         {count("exempt") > 0 && <span className="text-xl font-bold text-muted">免交 {count("exempt")} 項</span>}

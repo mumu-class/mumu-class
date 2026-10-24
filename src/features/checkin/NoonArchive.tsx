@@ -6,8 +6,10 @@ import { useToast } from "../../shared/Toast";
 import { Empty, ErrorBox, Loading } from "../../shared/ui";
 import { isRejected } from "./api";
 import { useClassroom } from "./classroom";
+import { useXlsxExport } from "./exportXlsx";
+import { noonDailyRows } from "./logic/exportRows";
 import { fmtRate } from "./logic/noon";
-import { fmtDateTime, fmtTime } from "./logic/time";
+import { fmtDateTime, fmtTime, taipeiToday } from "./logic/time";
 import { useNoonArchiveCatchup, useNoonDay, useNoonDays, useNoonSetLeave } from "./noonApi";
 
 /** 每日封存（M08）：已封存的日子，新到舊。老師可以展開一天補標請假（設計 §7.3；17:00 後請假是唯一能改的） */
@@ -17,13 +19,18 @@ export function NoonArchive() {
   const days = useNoonDays(cls.id);
   const [openId, setOpenId] = useState<string | null>(null);
   useNoonArchiveCatchup(cls.id);
+  const exporter = useXlsxExport();
 
   if (days.error) return <ErrorBox error={days.error} />;
   if (days.isLoading) return <Loading />;
 
   return (
     <>
-      <p className="mb-3 text-sm text-muted">每天 17:00 保留最終結果，隔天使用新的固定任務。封存後打卡不能再改，只有請假可以補標。</p>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <p className="text-sm text-muted">每天 17:00 保留最終結果，隔天使用新的固定任務。封存後打卡不能再改，只有請假可以補標。</p>
+        <button type="button" className="btn ml-auto" disabled={!days.data?.length || exporter.busy}
+          onClick={() => exporter.run(`中午每日統計_${taipeiToday()}.xlsx`, () => [noonDailyRows(days.data ?? [])])}>匯出 Excel</button>
+      </div>
       {!days.data?.length ? (
         <Empty>還沒有封存紀錄。每天 17:00 會自動封存當天的中午紀錄。</Empty>
       ) : (
